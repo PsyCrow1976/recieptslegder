@@ -1,0 +1,197 @@
+[
+  {
+    "source": "Screenshot from 2026-08-30 17-40-08.png",
+    "expected_store": "Harald Nyborg Bladsaxe",
+    "expected_invoice": "926773",
+    "expected_total_ore": 112150,
+    "expected_vat_ore": 22430,
+    "expected_line_count": 5,
+    "must_contain_skus": ["46716", "6643", "45506", "38715"],
+    "parse": {
+      "vendor": "Harald Nyborg",
+      "store_name": "Harald Nyborg BLADSAXE",
+      "store_address": "BLADSAXEVEJ 367-371, 2860 SØBORG",
+      "cvr": "DK-3778 3315",
+      "date": "23.08.2026",
+      "time": "13:15:35",
+      "kasse": "10",
+      "fakturanr": "926773",
+      "payment_method": "BETALINGSKORT",
+      "barcode": "*18-230826-926773*",
+      "cashier": "Albert",
+      "total": "1121,50",
+      "vat": "224,30",
+      "lines": [
+        {"item_number": "46716", "quantity": 1, "description": "SIMPLESTORE HAVE 2L", "line_total": "7,50"},
+        {"item_number": "6643", "quantity": 1, "description": "DECORA PENSELSÆT UDE 4 DELE", "line_total": "20,00"},
+        {"item_number": "6643", "quantity": 1, "description": "DECORA PENSELSÆT UDE 4 DELE", "line_total": "20,00"},
+        {"item_number": "45506", "quantity": 1, "description": "KABELTROMME 10M", "line_total": "75,00"},
+        {"item_number": "38715", "quantity": 1, "description": "TELESKOPSTIGE 3.5 M", "line_total": "999,00"}
+      ]
+    }
+  },
+  {
+    "source": "Screenshot from 2026-08-30 17-40-23.png",
+    "expected_store": "Harald Nyborg Maribo",
+    "expected_invoice": "228651",
+    "expected_total_ore": 15600,
+    "expected_vat_ore": 3120,
+    "expected_line_count": 10,
+    "must_contain_skus": ["3075", "6643", "39198", "331", "44256"],
+    "parse": {
+      "vendor": "Harald Nyborg",
+      "store_name": "Harald Nyborg MARIBO",
+      "store_address": "VESTERBROGADE 1A, 4930 MARIBO",
+      "cvr": "DK-3778 3315",
+      "date": "28.08.2026",
+      "time": "09:15:44",
+      "kasse": "01",
+      "fakturanr": "228651",
+      "payment_method": "BETALINGSKORT",
+      "barcode": "*30-280826-228651*",
+      "cashier": "Asher",
+      "total": "156,00",
+      "vat": "31,20",
+      "lines": [
+        {"item_number": "3075", "quantity": 1, "description": "MALERRULLESPAND 8L", "line_total": "29,50"},
+        {"item_number": "3075", "quantity": 1, "description": "MALERRULLESPAND 8L", "line_total": "29,50"},
+        {"item_number": "6643", "quantity": 1, "description": "DECORA PENSELSÆT UDE 4 DELE", "line_total": "20,00"},
+        {"item_number": "39198", "quantity": 1, "description": "CULT ENERGY SUGAR FREE 56,8 CL", "line_total": "15,00"},
+        {"item_number": "331", "quantity": 1, "description": "PANT A UNDER 1L GLASFL. DÅSER", "line_total": "1,00"},
+        {"item_number": "41636", "quantity": 1, "description": "PENSELSÆT 10 DELE", "line_total": "30,00"},
+        {"item_number": "38507", "quantity": 1, "description": "RENGØRINGSKLUD CELLULOSE 5 STK", "line_total": "5,00"},
+        {"item_number": "38507", "quantity": 1, "description": "RENGØRINGSKLUD CELLULOSE 5 STK", "line_total": "5,00"},
+        {"item_number": "38058", "quantity": 1, "description": "LED-PÆRE 5,5W E27 A60 DÆMPBAR", "line_total": "12,00"},
+        {"item_number": "44256", "quantity": 1, "description": "AFFALDSSÆK 70X110CM 30MY 1 RL", "line_total": "9,00"}
+      ]
+    }
+  },
+  {
+    "source": "Screenshot from 2026-08-30 17-40-34.png",
+    "expected_store": "Harald Nyborg Maribo",
+    "expected_invoice": "227741",
+    "expected_total_ore": 20550,
+    "expected_vat_ore": 4110,
+    "expected_line_count": 8,
+    "must_contain_skus": ["44521", "6643", "5744", "42455", "44818"],
+    "parse": {
+      "vendor": "Harald Nyborg",
+      "store_name": "Harald Nyborg MARIBO",
+      "store_address": "VESTERBROGADE 1A, 4930 MARIBO",
+      "cvr": "DK-3778 3315",
+      "date": "25.08.2026",
+      "time": "11:37:12",
+      "kasse": "02",
+      "fakturanr": "227741",
+      "payment_method": "BETALINGSKORT",
+      "barcode": "*30-250826-227741*",
+      "cashier": "Asher",
+      "total": "205,50",
+      "vat": "41,10",
+      "lines": [
+        {"item_number": "44521", "quantity": 1, "description": "MALERMATTE 1 X 10 M", "line_total": "58,00"},
+        {"item_number": "44521", "quantity": 1, "description": "MALERMATTE 1 X 10 M", "line_total": "58,00"},
+        {"item_number": "6643", "quantity": 1, "description": "DECORA PENSELSÆT UDE 4 DELE", "line_total": "20,00"},
+        {"item_number": "5744", "quantity": 1, "description": "MESSINGBØRSTE 4 RÆKKER", "line_total": "15,00"},
+        {"item_number": "5744", "quantity": 1, "description": "MESSINGBØRSTE 4 RÆKKER", "line_total": "15,00"},
+        {"item_number": "42455", "quantity": 1, "description": "WORKZ FLEX ARBEJDSHAND- STR10", "line_total": "15,00"},
+        {"item_number": "42456", "quantity": 1, "description": "WORKZ FLEX ARBEJDSHAND- STR11", "line_total": "15,00"},
+        {"item_number": "44818", "quantity": 1, "description": "KLEMRÆKKE 2X12 POL 2,5-4MM2 6A", "line_total": "9,50"}
+      ]
+    }
+  },
+  {
+    "source": "Screenshot from 2026-08-30 17-40-47.png",
+    "expected_store": "Harald Nyborg Herlev",
+    "expected_invoice": "682059",
+    "expected_total_ore": 20225,
+    "expected_vat_ore": 4045,
+    "expected_line_count": 6,
+    "must_contain_skus": ["44521", "38867", "36274", "45365"],
+    "parse": {
+      "vendor": "Harald Nyborg",
+      "store_name": "Harald Nyborg HERLEV",
+      "store_address": "HERLEV HOVEDGADE 41, 2730 HERLEV",
+      "cvr": "DK-3778 3315",
+      "date": "23.08.2026",
+      "time": "12:20:17",
+      "kasse": "01",
+      "fakturanr": "682059",
+      "payment_method": "BETALINGSKORT",
+      "barcode": "*81-230826-682059*",
+      "cashier": "Mehdi",
+      "total": "202,25",
+      "vat": "40,45",
+      "lines": [
+        {"item_number": "44521", "quantity": 1, "description": "MALERMATTE 1 X 10 M", "line_total": "58,00"},
+        {"item_number": "44521", "quantity": 1, "description": "MALERMATTE 1 X 10 M", "line_total": "58,00"},
+        {"item_number": "38867", "quantity": 1, "description": "RØREPINDSÆT 5-PAK", "line_total": "18,00"},
+        {"item_number": "36274", "quantity": 1, "description": "PRO HANEKOBLIN G 1/2 OG 3/4", "line_total": "30,00"},
+        {"item_number": "45365", "quantity": 1, "description": "SAGACOLOR MALERTAPE 38MM X 25M", "line_total": "19,13"},
+        {"item_number": "45365", "quantity": 1, "description": "SAGACOLOR MALERTAPE 38MM X 25M", "line_total": "19,12"}
+      ]
+    }
+  },
+  {
+    "source": "Screenshot from 2026-08-30 17-41-18.png",
+    "expected_store": "Harald Nyborg Maribo",
+    "expected_invoice": "227572",
+    "expected_total_ore": 10900,
+    "expected_vat_ore": 2180,
+    "expected_line_count": 3,
+    "must_contain_skus": ["45316", "44633", "7240"],
+    "parse": {
+      "vendor": "Harald Nyborg",
+      "store_name": "Harald Nyborg MARIBO",
+      "store_address": "VESTERBROGADE 1A, 4930 MARIBO",
+      "cvr": "DK-3778 3315",
+      "date": "24.08.2026",
+      "time": "16:20:13",
+      "kasse": "01",
+      "fakturanr": "227572",
+      "payment_method": "BETALINGSKORT",
+      "barcode": "*30-240826-227572*",
+      "cashier": "Klara",
+      "total": "109,00",
+      "vat": "21,80",
+      "lines": [
+        {"item_number": "45316", "quantity": 1, "description": "TELESKOP VINKELPENSEL 120MM", "line_total": "89,00"},
+        {"item_number": "44633", "quantity": 1, "description": "YANKIE BAR ORIGINAL 50G", "line_total": "10,00"},
+        {"item_number": "7240", "quantity": 1, "description": "SCHUSTER PENSEL VINKEL 70MM", "line_total": "10,00"}
+      ]
+    }
+  },
+  {
+    "source": "Screenshot from 2026-08-30 17-41-23.png",
+    "expected_store": "Harald Nyborg Herlev",
+    "expected_invoice": "682696",
+    "expected_total_ore": 17725,
+    "expected_vat_ore": 3545,
+    "expected_line_count": 7,
+    "must_contain_skus": ["45359", "4024", "44256", "37205", "3075"],
+    "parse": {
+      "vendor": "Harald Nyborg",
+      "store_name": "Harald Nyborg HERLEV",
+      "store_address": "HERLEV HOVEDGADE 41, 2730 HERLEV",
+      "cvr": "DK-3778 3315",
+      "date": "24.08.2026",
+      "time": "10:29:54",
+      "kasse": "01",
+      "fakturanr": "682696",
+      "payment_method": "BETALINGSKORT",
+      "barcode": "*81-240826-682696*",
+      "cashier": "Alex",
+      "total": "177,25",
+      "vat": "35,45",
+      "lines": [
+        {"item_number": "45359", "quantity": 1, "description": "MALERRULLESÆT 10 CM", "line_total": "28,00"},
+        {"item_number": "45359", "quantity": 1, "description": "MALERRULLESÆT 10 CM", "line_total": "28,00"},
+        {"item_number": "4024", "quantity": 1, "description": "DANALIM SEALFLEX HYBRID GRA", "line_total": "49,00"},
+        {"item_number": "44256", "quantity": 1, "description": "AFFALDSSÆK 70X110CM 30MY 1 RL", "line_total": "10,00"},
+        {"item_number": "37205", "quantity": 1, "description": "SKURESVAMP 10-PAK", "line_total": "3,25"},
+        {"item_number": "3075", "quantity": 1, "description": "MALERRULLESPAND 8L", "line_total": "29,50"},
+        {"item_number": "3075", "quantity": 1, "description": "MALERRULLESPAND 8L", "line_total": "29,50"}
+      ]
+    }
+  }
+]

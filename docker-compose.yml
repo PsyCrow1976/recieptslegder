@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-receiptslegder}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-receiptslegder}
+      POSTGRES_DB: ${POSTGRES_DB:-receiptslegder}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-receiptslegder} -d ${POSTGRES_DB:-receiptslegder}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./api
+    restart: unless-stopped
+    volumes:
+      - receipt_images:/app/data/receipts
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://receiptslegder:receiptslegder@db:5432/receiptslegder}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-10080}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8090,http://192.168.1.130:8090}
+      TZ: ${TZ:-Europe/Copenhagen}
+      RECEIPT_STORAGE_PATH: /app/data/receipts
+      XAI_API_KEY: ${XAI_API_KEY:-}
+      XAI_MODEL: ${XAI_MODEL:-grok-4.6}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-8090}:80"
+    depends_on:
+      - api
+    labels:
+      net.unraid.docker.webui: "http://[IP]:[PORT:8090]/"
+      net.unraid.docker.description: "Receipts ledger — scan, tag, and calendar Danish receipts"
+
+volumes:
+  postgres_data:
+    driver: local
+  receipt_images:
+    driver: local
