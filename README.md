@@ -35,7 +35,7 @@ cp docker-compose.override.example.yml docker-compose.override.yml
 docker compose up -d --build
 ```
 
-Open [http://192.168.1.130:8090](http://192.168.1.130:8090).
+Open [http://192.168.1.130:8085](http://192.168.1.130:8085).
 
 ## Local development
 
@@ -45,7 +45,7 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-Open [http://localhost:8090](http://localhost:8090).
+Open [http://localhost:8085](http://localhost:8085).
 
 Parser tests (no Docker, no API key):
 

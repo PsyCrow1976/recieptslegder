@@ -27,7 +27,7 @@ services:
       JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-10080}
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8090,http://192.168.1.130:8090}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8085,http://192.168.1.130:8085}
       TZ: ${TZ:-Europe/Copenhagen}
       RECEIPT_STORAGE_PATH: /app/data/receipts
       XAI_API_KEY: ${XAI_API_KEY:-}
@@ -42,11 +42,11 @@ services:
       dockerfile: nginx/Dockerfile
     restart: unless-stopped
     ports:
-      - "${HTTP_PORT:-8090}:80"
+      - "${HTTP_PORT:-8085}:80"
     depends_on:
       - api
     labels:
-      net.unraid.docker.webui: "http://[IP]:[PORT:8090]/"
+      net.unraid.docker.webui: "http://[IP]:[PORT:8085]/"
       net.unraid.docker.description: "Receipts ledger — scan, tag, and calendar Danish receipts"
 
 volumes:

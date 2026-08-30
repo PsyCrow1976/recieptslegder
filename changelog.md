@@ -2,6 +2,10 @@
 
 All notable changes to Receipts Ledger are documented here.
 
+## 0.1.1 — 2026-08-30
+
+- Default published port is **8085** (8090 was already in use).
+
 ## 0.1.0 — 2026-08-30
 
 First version: a personal Danish receipt ledger for Unraid, with Harald Nyborg as the first vendor.
@@ -15,6 +19,6 @@ First version: a personal Danish receipt ledger for Unraid, with Harald Nyborg a
 - Calendar month view keyed off the receipt date.
 - Dashboard: this month, all time, spend by tag and vendor.
 - Harald Nyborg product lookup: `https://www.harald-nyborg.dk/product/index?id={varenr}` is fetched on save and via **Match products**, then linked on each line.
-- Docker Compose stack (PostgreSQL 16, FastAPI, nginx + React) for Unraid, default port **8090**.
+- Docker Compose stack (PostgreSQL 16, FastAPI, nginx + React) for Unraid, default port **8085**.
 - Login with `ADMIN_USERNAME` / `ADMIN_PASSWORD`.
 - Training receipts under `trainingreceipts/` and golden parser tests for the six Harald Nyborg photos.

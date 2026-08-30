@@ -3,9 +3,9 @@
 Step-by-step install on Unraid. This matches the same pattern as FitLineVentory on the same server.
 
 **Your server:** `192.168.1.130`  
-**App URL after install:** `http://192.168.1.130:8090`
+**App URL after install:** `http://192.168.1.130:8085`
 
-Port **8090** is used so this stack does not collide with FitLineVentory on **8080**.
+Port **8085** is used so this stack does not collide with FitLineVentory on **8080**.
 
 ---
 
@@ -17,7 +17,7 @@ Docker Compose starts three containers:
 |-----------|------|
 | `db` | PostgreSQL 16 — receipts, tags, products |
 | `api` | FastAPI — OCR, ledger, product lookup |
-| `web` | nginx — web UI + API proxy on port `8090` |
+| `web` | nginx — web UI + API proxy on port `8085` |
 
 Receipt **photos** are stored on a Docker volume (or Unraid appdata if you use the override file).
 
@@ -30,7 +30,7 @@ Scanning a photo needs a **SpaceXAI (xAI) API key** (`XAI_API_KEY`). The key sta
 1. **Docker is running** — Unraid → **Settings → Docker** → enabled.
 2. **Docker Compose** — Unraid does not ship with `docker compose`. See **Step 0**.
 3. **Git** — `git --version`. Install from **Apps** (Nerd Tools / git) if missing.
-4. **Port 8090 is free** — or set `HTTP_PORT` in `.env`.
+4. **Port 8085 is free** — or set `HTTP_PORT` in `.env`.
 5. Terminal or SSH:
    ```bash
    ssh root@192.168.1.130
@@ -128,7 +128,7 @@ nano .env
 Example:
 
 ```env
-HTTP_PORT=8090
+HTTP_PORT=8085
 POSTGRES_USER=receiptslegder
 POSTGRES_PASSWORD=your-strong-db-password
 POSTGRES_DB=receiptslegder
@@ -136,7 +136,7 @@ DATABASE_URL=postgresql+psycopg://receiptslegder:your-strong-db-password@db:5432
 JWT_SECRET=your-long-random-secret
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=your-admin-password
-CORS_ORIGINS=http://localhost:8090,http://192.168.1.130:8090
+CORS_ORIGINS=http://localhost:8085,http://192.168.1.130:8085
 TZ=Europe/Copenhagen
 XAI_API_KEY=xai-your-key-here
 XAI_MODEL=grok-4.6
@@ -199,7 +199,7 @@ All three services should be **Up**, and `db` **healthy**.
 ## Step 6 — Verify
 
 ```bash
-curl http://localhost:8090/health
+curl http://localhost:8085/health
 ```
 
 Expected: `{"status":"ok"}`
@@ -207,7 +207,7 @@ Expected: `{"status":"ok"}`
 Login (use your `ADMIN_PASSWORD`):
 
 ```bash
-curl -X POST http://localhost:8090/api/v1/auth/login \
+curl -X POST http://localhost:8085/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"YOUR_ADMIN_PASSWORD"}'
 ```
@@ -217,12 +217,12 @@ Expected: JSON with `access_token`.
 On the LAN:
 
 ```
-http://192.168.1.130:8090
+http://192.168.1.130:8085
 ```
 
 Sign in with `ADMIN_USERNAME` / `ADMIN_PASSWORD`.
 
-API docs: `http://192.168.1.130:8090/docs`
+API docs: `http://192.168.1.130:8085/docs`
 
 ---
 
@@ -306,11 +306,11 @@ docker compose logs api --tail 50
 docker compose restart api
 ```
 
-### Cannot open `http://192.168.1.130:8090`
+### Cannot open `http://192.168.1.130:8085`
 
 - `docker compose ps`
-- `curl http://localhost:8090/health`
-- Change `HTTP_PORT` in `.env` if 8090 is taken, and add the new URL to `CORS_ORIGINS`
+- `curl http://localhost:8085/health`
+- Change `HTTP_PORT` in `.env` if 8085 is taken, and add the new URL to `CORS_ORIGINS`
 
 ### Login fails after changing `ADMIN_PASSWORD`
 
@@ -337,7 +337,7 @@ rm -rf /mnt/user/appdata/receiptslegder
 | Item | Value |
 |------|-------|
 | Project path | `/mnt/user/appdata/receiptslegder` |
-| Web UI | `http://192.168.1.130:8090` |
-| API | `http://192.168.1.130:8090/api/v1` |
-| Docs | `http://192.168.1.130:8090/docs` |
+| Web UI | `http://192.168.1.130:8085` |
+| API | `http://192.168.1.130:8085/api/v1` |
+| Docs | `http://192.168.1.130:8085/docs` |
 | GitHub | https://github.com/PsyCrow1976/recieptslegder |
