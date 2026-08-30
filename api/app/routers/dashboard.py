@@ -26,6 +26,7 @@ def dashboard(
     month_start = datetime(today.year, today.month, 1, tzinfo=COPENHAGEN)
 
     saved = Receipt.status == "saved"
+    training_count = db.scalar(select(func.count(Receipt.id)).where(Receipt.needs_training.is_(True))) or 0
     all_time = db.execute(
         select(func.count(Receipt.id), func.coalesce(func.sum(Receipt.total_ore), 0)).where(saved)
     ).one()
@@ -53,6 +54,7 @@ def dashboard(
         this_month_ore=int(this_month or 0),
         all_time_ore=int(all_time[1] or 0),
         receipt_count=int(all_time[0] or 0),
+        training_count=int(training_count),
         by_tag=[TagSpend(tag=tag, receipt_count=int(count), total_ore=int(total)) for tag, count, total in tag_rows],
         by_vendor=[
             {"vendor_name": name, "receipt_count": int(count), "total_ore": int(total)}

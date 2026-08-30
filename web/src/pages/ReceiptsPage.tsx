@@ -12,6 +12,7 @@ export default function ReceiptsPage() {
   const [error, setError] = useState("");
   const [q, setQ] = useState(params.get("q") ?? "");
   const tagId = params.get("tag") ?? "";
+  const training = params.get("training") === "1";
 
   useEffect(() => {
     if (!token) return;
@@ -21,7 +22,12 @@ export default function ReceiptsPage() {
   useEffect(() => {
     if (!token) return;
     api
-      .receipts(token, { tagId: tagId || undefined, q: params.get("q") || undefined })
+      .receipts(token, {
+        tagId: tagId || undefined,
+        q: params.get("q") || undefined,
+        needsTraining: training || undefined,
+        includeDrafts: training || undefined,
+      })
       .then(setReceipts)
       .catch((err: Error) => setError(err.message));
   }, [token, tagId, params]);
@@ -36,7 +42,13 @@ export default function ReceiptsPage() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Receipts</h2>
+      <h2 className="text-2xl font-bold">{training ? "Training queue" : "Receipts"}</h2>
+      {training && (
+        <p className="text-sm text-amber-800">
+          Slips local OCR could not fully read. Open one, correct the vendor and lines, then confirm. Keep them flagged
+          if you want them as later training examples.
+        </p>
+      )}
       <form onSubmit={search} className="flex flex-col gap-2 sm:flex-row">
         <input
           className="flex-1 rounded-lg border border-stone-300 px-3 py-2"
@@ -89,6 +101,12 @@ export default function ReceiptsPage() {
                         {tag.name}
                       </span>
                     ))}
+                    {receipt.needs_training && (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">training</span>
+                    )}
+                    {receipt.status === "draft" && (
+                      <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600">draft</span>
+                    )}
                     {!receipt.lines_sum_ok && (
                       <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">total mismatch</span>
                     )}

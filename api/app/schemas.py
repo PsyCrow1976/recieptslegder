@@ -92,6 +92,7 @@ class ReceiptWrite(BaseModel):
     cashier: str | None = None
     notes: str | None = None
     status: str | None = None
+    needs_training: bool | None = None
     tag_ids: list[UUID] | None = None
     lines: list[ReceiptLineWrite] | None = None
 
@@ -114,6 +115,7 @@ class ReceiptRead(BaseModel):
     barcode: str | None
     cashier: str | None
     status: str
+    needs_training: bool = False
     lines_sum_ok: bool
     vat_ok: bool
     notes: str | None
@@ -134,6 +136,7 @@ class DashboardSummary(BaseModel):
     this_month_ore: int
     all_time_ore: int
     receipt_count: int
+    training_count: int = 0
     by_tag: list[TagSpend]
     by_vendor: list[dict]
 

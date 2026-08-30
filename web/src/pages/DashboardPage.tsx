@@ -37,6 +37,13 @@ export default function DashboardPage() {
             <Stat label="This month" value={formatDkk(data.this_month_ore)} />
             <Stat label="All time" value={formatDkk(data.all_time_ore)} />
             <Stat label="Receipts" value={String(data.receipt_count)} />
+            {data.training_count > 0 && (
+              <Link to="/receipts?training=1" className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <p className="text-sm text-amber-800">Needs training</p>
+                <p className="mt-1 text-2xl font-semibold text-amber-950">{data.training_count}</p>
+                <p className="mt-1 text-xs text-amber-800">OCR could not read these slips</p>
+              </Link>
+            )}
           </div>
 
           <section className="rounded-2xl border border-stone-200 bg-white p-4">

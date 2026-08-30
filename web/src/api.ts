@@ -52,6 +52,7 @@ export type Receipt = {
   barcode: string | null;
   cashier: string | null;
   status: string;
+  needs_training: boolean;
   lines_sum_ok: boolean;
   vat_ok: boolean;
   notes: string | null;
@@ -72,6 +73,7 @@ export type Dashboard = {
   this_month_ore: number;
   all_time_ore: number;
   receipt_count: number;
+  training_count: number;
   by_tag: TagSpend[];
   by_vendor: { vendor_name: string; receipt_count: number; total_ore: number }[];
 };
@@ -149,12 +151,16 @@ export const api = {
   dashboard: (token: string) => request<Dashboard>("/dashboard", token),
   calendar: (token: string, year: number, month: number) =>
     request<CalendarDay[]>(`/calendar?year=${year}&month=${month}`, token),
-  receipts: (token: string, params?: { tagId?: string; q?: string; day?: string; includeDrafts?: boolean }) => {
+  receipts: (
+    token: string,
+    params?: { tagId?: string; q?: string; day?: string; includeDrafts?: boolean; needsTraining?: boolean },
+  ) => {
     const search = new URLSearchParams();
     if (params?.tagId) search.set("tag_id", params.tagId);
     if (params?.q) search.set("q", params.q);
     if (params?.day) search.set("day", params.day);
     if (params?.includeDrafts) search.set("include_drafts", "true");
+    if (params?.needsTraining) search.set("needs_training", "true");
     const query = search.toString();
     return request<Receipt[]>(`/receipts${query ? `?${query}` : ""}`, token);
   },
@@ -177,6 +183,7 @@ export const api = {
       vat_ore?: number;
       notes?: string | null;
       status?: string;
+      needs_training?: boolean;
       tag_ids?: string[];
       lines?: LineWrite[];
     },

@@ -21,7 +21,7 @@ Docker Compose starts three containers:
 
 Receipt **photos** are stored on a Docker volume (or Unraid appdata if you use the override file).
 
-Scanning a photo needs a **SpaceXAI (xAI) API key** (`XAI_API_KEY`). The key stays on the server, never in the browser.
+Scanning uses **Tesseract inside the API container** (Danish + English). No cloud OCR and no API key.
 
 ---
 
@@ -35,7 +35,7 @@ Scanning a photo needs a **SpaceXAI (xAI) API key** (`XAI_API_KEY`). The key sta
    ```bash
    ssh root@192.168.1.130
    ```
-6. An xAI API key from [https://console.x.ai](https://console.x.ai) (create a key and add credits).
+
 
 ### Check what you have
 
@@ -123,7 +123,6 @@ nano .env
 | `POSTGRES_PASSWORD` | Strong password; must match the password in `DATABASE_URL` |
 | `JWT_SECRET` | Long random string for login tokens |
 | `ADMIN_PASSWORD` | Web login password |
-| `XAI_API_KEY` | SpaceXAI / xAI key for receipt scanning |
 
 Example:
 
@@ -138,8 +137,6 @@ ADMIN_USERNAME=admin
 ADMIN_PASSWORD=your-admin-password
 CORS_ORIGINS=http://localhost:8085,http://192.168.1.130:8085
 TZ=Europe/Copenhagen
-XAI_API_KEY=xai-your-key-here
-XAI_MODEL=grok-4.6
 ```
 
 The password in `DATABASE_URL` **must** be the same as `POSTGRES_PASSWORD`.
@@ -289,12 +286,14 @@ cat backup-2026-08-30.sql | docker compose exec -T db psql -U receiptslegder rec
 
 ## Troubleshooting
 
-### Scan fails with “XAI_API_KEY is not set”
+### Scan reads little or nothing
 
-Put the key in `.env` and recreate the API container:
+Crumpled thermal photos are hard for Tesseract. Correct the vendor and lines on the review page, then confirm. Failed reads stay in **Training** so we can teach new layouts later.
+
+Rebuild after pulling this version (`tesseract-ocr-dan` is now in the API image):
 
 ```bash
-docker compose up -d --force-recreate api
+docker compose up -d --build
 ```
 
 ### 502 Bad Gateway

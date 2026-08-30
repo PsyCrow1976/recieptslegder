@@ -30,8 +30,6 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8085,http://192.168.1.130:8085}
       TZ: ${TZ:-Europe/Copenhagen}
       RECEIPT_STORAGE_PATH: /app/data/receipts
-      XAI_API_KEY: ${XAI_API_KEY:-}
-      XAI_MODEL: ${XAI_MODEL:-grok-4.6}
     depends_on:
       db:
         condition: service_healthy

@@ -37,8 +37,8 @@ export default function UploadPage() {
       <div>
         <h2 className="text-2xl font-bold">Scan a receipt</h2>
         <p className="text-stone-500">
-          Photograph or upload a till slip. Harald Nyborg is read first: varenr, quantity, description, prices, date, and
-          total.
+          Photograph or upload a till slip. Tesseract runs on this server (no cloud). Harald Nyborg is recognised from
+          column layout (varenr, qty, description, price). Review and correct before it is saved.
         </p>
       </div>
 

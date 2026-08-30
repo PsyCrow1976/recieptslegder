@@ -8,7 +8,7 @@ GitHub: [https://github.com/PsyCrow1976/recieptslegder](https://github.com/PsyCr
 
 ## Features
 
-- **Scan** — upload a JPEG/PNG; SpaceXAI vision + a Harald Nyborg normalizer extract SKU, qty, description, prices, store, date, invoice, VAT
+- **Scan** — upload a JPEG/PNG; local Tesseract OCR + a Harald Nyborg layout parser extract SKU, qty, description, prices, store, date, invoice, VAT. Review and correct before save. Failed reads are flagged for training.
 - **Verify** — line sum vs `I ALT`, `Heraf moms` vs 25% inclusive VAT
 - **Tags** — create / edit / delete projects or groups; many tags per receipt; spend by tag
 - **Calendar** — month view of purchase dates
@@ -19,7 +19,7 @@ GitHub: [https://github.com/PsyCrow1976/recieptslegder](https://github.com/PsyCr
 
 PostgreSQL 16, FastAPI, React + Vite + Tailwind, nginx, Docker Compose.
 
-Receipt scanning uses **SpaceXAI** (`XAI_API_KEY`, `https://api.x.ai/v1`, model `grok-4.6`).
+Receipt scanning is **local Tesseract** (Danish + English) inside the API container. No cloud OCR and no API key.
 
 ## Unraid
 
@@ -30,7 +30,7 @@ Short version:
 ```bash
 mkdir -p /mnt/user/appdata/receiptslegder && cd /mnt/user/appdata/receiptslegder
 git clone https://github.com/PsyCrow1976/recieptslegder.git .
-cp .env.example .env && nano .env   # passwords + XAI_API_KEY
+cp .env.example .env && nano .env   # set passwords
 cp docker-compose.override.example.yml docker-compose.override.yml
 docker compose up -d --build
 ```
@@ -41,7 +41,6 @@ Open [http://192.168.1.130:8085](http://192.168.1.130:8085).
 
 ```bash
 cp .env.example .env
-# set XAI_API_KEY for live scanning
 docker compose up -d --build
 ```
 

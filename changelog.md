@@ -2,6 +2,13 @@
 
 All notable changes to Receipts Ledger are documented here.
 
+## 0.2.0 — 2026-08-30
+
+- Receipt scanning is **local Tesseract** (no SpaceXAI / no API key).
+- Harald Nyborg layout is learned from column positions: varenr, qty, description, amount, plus date / total / moms.
+- Upload always opens a review page so vendor and line items can be corrected before save.
+- If OCR cannot identify the vendor or line items, the receipt is flagged for training (`needs_training`) and listed under **Training**.
+
 ## 0.1.1 — 2026-08-30
 
 - Default published port is **8085** (8090 was already in use).

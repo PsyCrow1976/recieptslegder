@@ -26,6 +26,10 @@ export default function ReceiptDetailPage() {
   const [total, setTotal] = useState("");
   const [vat, setVat] = useState("");
   const [notes, setNotes] = useState("");
+  const [vendorName, setVendorName] = useState("");
+  const [storeName, setStoreName] = useState("");
+  const [invoiceNo, setInvoiceNo] = useState("");
+  const [flagTraining, setFlagTraining] = useState(false);
 
   useEffect(() => {
     if (!token || !id) return;
@@ -59,6 +63,10 @@ export default function ReceiptDetailPage() {
     setTotal((data.total_ore / 100).toFixed(2).replace(".", ","));
     setVat((data.vat_ore / 100).toFixed(2).replace(".", ","));
     setNotes(data.notes ?? "");
+    setVendorName(data.vendor_name);
+    setStoreName(data.store_name ?? "");
+    setInvoiceNo(data.invoice_no ?? "");
+    setFlagTraining(data.needs_training);
   }
 
   const lineWrites: LineWrite[] = useMemo(
@@ -79,10 +87,14 @@ export default function ReceiptDetailPage() {
     setError("");
     try {
       const updated = await api.updateReceipt(token, id, {
+        vendor_name: vendorName,
+        store_name: storeName || null,
+        invoice_no: invoiceNo || null,
         total_ore: parseDkkInput(total),
         vat_ore: parseDkkInput(vat),
         notes: notes || null,
         status: status ?? receipt?.status,
+        needs_training: flagTraining,
         tag_ids: selectedTags,
         lines: lineWrites,
       });
@@ -129,10 +141,10 @@ export default function ReceiptDetailPage() {
               Receipts
             </Link>
           </p>
-          <h2 className="text-2xl font-bold">{receipt.vendor_name}</h2>
+          <h2 className="text-2xl font-bold">{vendorName || receipt.vendor_name}</h2>
           <p className="text-stone-500">
-            {receipt.store_name ?? "—"} · {formatDateTime(receipt.purchased_at)}
-            {receipt.invoice_no ? ` · invoice ${receipt.invoice_no}` : ""}
+            {storeName || receipt.store_name || "—"} · {formatDateTime(receipt.purchased_at)}
+            {invoiceNo ? ` · invoice ${invoiceNo}` : ""}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -162,6 +174,20 @@ export default function ReceiptDetailPage() {
 
       {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
+      {receipt.needs_training && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+          <p className="font-medium">Flagged for training</p>
+          <p className="mt-1">
+            Local OCR could not fully read this slip. Correct vendor and line items below, then confirm. The original
+            photo and OCR text stay stored so we can teach new vendor layouts later.
+          </p>
+          <label className="mt-2 flex items-center gap-2">
+            <input type="checkbox" checked={flagTraining} onChange={(e) => setFlagTraining(e.target.checked)} />
+            Keep flagged in the training queue
+          </label>
+        </div>
+      )}
+
       {receipt.warnings.length > 0 && (
         <ul className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
           {receipt.warnings.map((warning) => (
@@ -180,6 +206,37 @@ export default function ReceiptDetailPage() {
         </div>
 
         <div className="space-y-4">
+          <section className="rounded-2xl border border-stone-200 bg-white p-4 space-y-3">
+            <h3 className="font-semibold">Vendor</h3>
+            <label className="block text-sm">
+              Name
+              <input
+                className="mt-1 w-full rounded border px-2 py-1"
+                value={vendorName}
+                onChange={(e) => setVendorName(e.target.value)}
+              />
+            </label>
+            <label className="block text-sm">
+              Store
+              <input
+                className="mt-1 w-full rounded border px-2 py-1"
+                value={storeName}
+                onChange={(e) => setStoreName(e.target.value)}
+              />
+            </label>
+            <label className="block text-sm">
+              Invoice
+              <input
+                className="mt-1 w-full rounded border px-2 py-1"
+                value={invoiceNo}
+                onChange={(e) => setInvoiceNo(e.target.value)}
+              />
+            </label>
+            <p className="text-xs text-stone-500">
+              Payment: {receipt.payment_method ?? "—"} · Kasse {receipt.register_no ?? "—"} · Cashier{" "}
+              {receipt.cashier ?? "—"}
+            </p>
+          </section>
           <section className="rounded-2xl border border-stone-200 bg-white p-4">
             <h3 className="font-semibold">Tags</h3>
             <div className="mt-2 flex flex-wrap gap-2">

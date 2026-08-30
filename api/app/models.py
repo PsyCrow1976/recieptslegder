@@ -94,6 +94,7 @@ class Receipt(Base):
     image_path: Mapped[str | None] = mapped_column(String(500))
     image_content_type: Mapped[str | None] = mapped_column(String(80))
     status: Mapped[str] = mapped_column(String(20), default="draft", nullable=False)
+    needs_training: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     lines_sum_ok: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     vat_ok: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     raw_parse: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)

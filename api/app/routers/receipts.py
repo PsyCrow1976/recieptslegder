@@ -96,18 +96,33 @@ async def scan_receipt(
     dest = storage / filename
     dest.write_bytes(image_bytes)
 
+    failed = False
     try:
-        parsed, raw = scan_receipt_image(image_bytes, file.content_type or "image/jpeg")
-    except RuntimeError as exc:
-        dest.unlink(missing_ok=True)
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        parsed, raw, failed = scan_receipt_image(image_bytes, file.content_type or "image/jpeg")
     except Exception as exc:
-        dest.unlink(missing_ok=True)
-        raise HTTPException(status_code=502, detail=f"Could not read the receipt: {exc}") from exc
+        failed = True
+        parsed = ParsedReceipt(
+            vendor_name="Unknown vendor",
+            vendor_slug=None,
+            store_name=None,
+            store_address=None,
+            cvr=None,
+            purchased_at=None,
+            register_no=None,
+            invoice_no=None,
+            payment_method=None,
+            total_ore=0,
+            vat_ore=0,
+            barcode=None,
+            cashier=None,
+            warnings=[f"Local OCR failed ({exc}). Flagged for training."],
+        )
+        raw = {"ocr_engine": "tesseract", "error": str(exc)}
 
     vendor = _vendor_for(db, parsed)
     receipt = Receipt(
         status="draft",
+        needs_training=failed,
         image_path=str(dest),
         image_content_type=file.content_type,
         raw_parse=raw,
@@ -116,6 +131,15 @@ async def scan_receipt(
         vat_ore=parsed.vat_ore,
     )
     _apply_parsed(receipt, parsed, vendor)
+    receipt.needs_training = failed
+    merged = dict(receipt.raw_parse or {})
+    if isinstance(raw, dict):
+        if raw.get("ocr_text"):
+            merged["ocr_text"] = raw["ocr_text"]
+        merged["ocr_engine"] = raw.get("ocr_engine", "tesseract")
+        if raw.get("error"):
+            merged["error"] = raw["error"]
+    receipt.raw_parse = merged
     db.add(receipt)
     db.commit()
     receipt = _get_receipt(db, receipt.id)
@@ -131,8 +155,12 @@ def list_receipts(
     q: str | None = None,
     day: date | None = None,
     include_drafts: bool = False,
+    needs_training: bool | None = None,
 ) -> list[ReceiptRead]:
     stmt = select(Receipt).options(*RECEIPT_LOAD)
+    if needs_training is True:
+        stmt = stmt.where(Receipt.needs_training.is_(True))
+        include_drafts = True
     if not include_drafts:
         stmt = stmt.where(Receipt.status == "saved")
     if tag_id:
@@ -201,11 +229,6 @@ def update_receipt(
     set_tags(db, receipt, tag_ids)
     apply_verification(receipt)
     db.commit()
-    if receipt.status == "saved" and receipt.vendor and receipt.vendor.slug == "harald-nyborg":
-        try:
-            lookup_receipt_products(db, receipt.id, receipt.vendor)
-        except Exception:
-            pass
     return to_read(_get_receipt(db, receipt.id))
 
 
