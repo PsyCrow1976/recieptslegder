@@ -2,6 +2,10 @@
 
 All notable changes to Receipts Ledger are documented here.
 
+## 0.2.1 — 2026-08-30
+
+- Added [localOCR.md](localOCR.md): plan for a local training studio (word-box labeling, vendor column layouts). Not implemented yet.
+
 ## 0.2.0 — 2026-08-30
 
 - Receipt scanning is **local Tesseract** (no SpaceXAI / no API key).

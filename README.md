@@ -21,6 +21,8 @@ PostgreSQL 16, FastAPI, React + Vite + Tailwind, nginx, Docker Compose.
 
 Receipt scanning is **local Tesseract** (Danish + English) inside the API container. No cloud OCR and no API key.
 
+A plan to train layouts on more vendors (and recover missed line items) is in **[localOCR.md](localOCR.md)** — not implemented yet.
+
 ## Unraid
 
 See **[deploy.md](deploy.md)** for the full Unraid Docker Compose guide.
