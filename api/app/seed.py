@@ -7,16 +7,19 @@ from app.models import LoginUser
 
 
 def seed() -> None:
+    """Keep the household login in sync with ADMIN_USERNAME / ADMIN_PASSWORD in .env."""
     with SessionLocal() as db:
         admin = db.scalar(select(LoginUser).where(LoginUser.username == settings.admin_username))
-        if not admin:
+        if admin:
+            admin.password_hash = hash_password(settings.admin_password)
+        else:
             db.add(
                 LoginUser(
                     username=settings.admin_username,
                     password_hash=hash_password(settings.admin_password),
                 )
             )
-            db.commit()
+        db.commit()
 
 
 if __name__ == "__main__":

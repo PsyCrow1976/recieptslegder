@@ -169,16 +169,36 @@ Also back up `/mnt/user/appdata/receiptslegder/postgres` and `documents` if you 
 
 ---
 
+## Purge the database (100%)
+
+Stops the stack, deletes Postgres and uploaded files, then recreates an empty database and the admin login from `.env` (`ADMIN_USERNAME` / `ADMIN_PASSWORD`).
+
+```bash
+cd /mnt/user/appdata/receiptslegder
+git pull
+docker compose down
+rm -rf postgres documents
+mkdir -p postgres documents
+docker volume rm receiptslegder_postgres_data receiptslegder_documents 2>/dev/null || true
+docker compose up -d --build
+```
+
+Wait until `docker compose ps` shows `db` healthy and `api` up, then sign in with the values in `.env`.
+
+`DATABASE_URL` must use the same password as `POSTGRES_PASSWORD`.
+
+---
+
 ## Troubleshooting
 
 ### 502 Bad Gateway
 
 Wait for migrations, then `docker compose logs api --tail 50`.
 
-### Login fails after changing `ADMIN_PASSWORD`
+### Login fails
 
-The admin user is created on **first startup** only. To recreate: wipe the database (`docker compose down -v` or delete the postgres appdata folder) or change the password in the `login_users` table.
+Sign in with `ADMIN_USERNAME` and `ADMIN_PASSWORD` from `.env`. The API now applies those values on every start. If login still fails, run **Purge the database** above.
 
 ### Alembic / schema errors after git pull
 
-This schema is new. Wipe Postgres as in **Breaking upgrade** above.
+This schema is new. Wipe Postgres as in **Purge the database** above.
