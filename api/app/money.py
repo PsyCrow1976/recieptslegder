@@ -9,7 +9,6 @@ def parse_dkk_to_ore(value: Any) -> int | None:
     if isinstance(value, bool):
         return None
     if isinstance(value, int):
-        # Integers from vision are kroner if small, already-øre if huge — treat as kroner.
         return value * 100
     if isinstance(value, float):
         return int((Decimal(str(value)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
@@ -39,12 +38,3 @@ def format_dkk(ore: int | None) -> str:
     kroner, rest = divmod(ore, 100)
     grouped = f"{kroner:,}".replace(",", ".")
     return f"{sign}{grouped},{rest:02d}"
-
-
-def expected_vat_ore(total_ore: int, rate_percent: int = 25) -> int:
-    """VAT included in the total (Danish 25% → VAT = total * 20%)."""
-    return int(
-        (Decimal(total_ore) * Decimal(rate_percent) / Decimal(100 + rate_percent)).quantize(
-            Decimal("1"), rounding=ROUND_HALF_UP
-        )
-    )

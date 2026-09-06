@@ -4,4 +4,9 @@
 
 body {
   @apply min-h-screen antialiased;
+  font-family: Figtree, ui-sans-serif, system-ui, sans-serif;
+}
+
+h1, h2, .serif {
+  font-family: Fraunces, ui-serif, Georgia, serif;
 }

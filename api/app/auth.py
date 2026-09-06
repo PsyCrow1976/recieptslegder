@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
-from app.models import User
+from app.models import LoginUser
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
@@ -34,7 +34,7 @@ def create_access_token(user_id: UUID, username: str) -> str:
 def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
     db: Annotated[Session, Depends(get_db)],
-) -> User:
+) -> LoginUser:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -52,7 +52,7 @@ def get_current_user(
     except JWTError as exc:
         raise credentials_exception from exc
 
-    user = db.scalar(select(User).where(User.id == UUID(user_id)))
+    user = db.scalar(select(LoginUser).where(LoginUser.id == UUID(user_id)))
     if user is None:
         raise credentials_exception
     return user

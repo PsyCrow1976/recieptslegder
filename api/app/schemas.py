@@ -1,7 +1,10 @@
-from datetime import datetime
+from datetime import date, datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
+
+PlatformKind = Literal["bank", "investment", "other"]
 
 
 class Token(BaseModel):
@@ -22,19 +25,19 @@ class UserRead(BaseModel):
     is_admin: bool = False
 
 
-class TagCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
-    color: str = Field(default="#c2410c", max_length=20)
+class PersonWrite(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    color: str = Field(default="#0f766e", max_length=20)
     notes: str | None = None
 
 
-class TagUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=1, max_length=100)
+class PersonUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=200)
     color: str | None = Field(default=None, max_length=20)
     notes: str | None = None
 
 
-class TagRead(BaseModel):
+class PersonRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
@@ -44,105 +47,216 @@ class TagRead(BaseModel):
     created_at: datetime
 
 
-class ProductRead(BaseModel):
+class PlatformWrite(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    kind: PlatformKind = "bank"
+    website: str | None = None
+    color: str = Field(default="#1e3a5f", max_length=20)
+    notes: str | None = None
+
+
+class PlatformUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    kind: PlatformKind | None = None
+    website: str | None = None
+    color: str | None = Field(default=None, max_length=20)
+    notes: str | None = None
+
+
+class PlatformRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
-    item_number: str
-    title: str | None
-    url: str | None
-    image_url: str | None
-    last_web_price_ore: int | None
-    status: str
-    last_fetched_at: datetime | None
+    name: str
+    kind: PlatformKind
+    website: str | None
+    color: str
+    notes: str | None
+    created_at: datetime
+    account_count: int = 0
 
 
-class ReceiptLineWrite(BaseModel):
-    item_number: str | None = None
-    quantity: int = 1
-    description: str = ""
-    line_total_ore: int
+class VendorWrite(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    website: str | None = None
+    notes: str | None = None
 
 
-class ReceiptLineRead(BaseModel):
+class VendorUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    website: str | None = None
+    notes: str | None = None
+
+
+class VendorRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    name: str
+    website: str | None
+    notes: str | None
+    created_at: datetime
+
+
+class CategoryWrite(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    color: str = Field(default="#0f766e", max_length=20)
+    notes: str | None = None
+
+
+class CategoryUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    color: str | None = Field(default=None, max_length=20)
+    notes: str | None = None
+
+
+class CategoryRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    name: str
+    color: str
+    notes: str | None
+    created_at: datetime
+
+
+class AccountWrite(BaseModel):
+    platform_id: UUID
+    name: str = Field(min_length=1, max_length=200)
+    account_number: str | None = None
+    currency: str = Field(default="DKK", min_length=3, max_length=3)
+    opening_balance_ore: int = 0
+    owner_ids: list[UUID] = Field(min_length=1)
+    notes: str | None = None
+
+
+class AccountUpdate(BaseModel):
+    platform_id: UUID | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    account_number: str | None = None
+    currency: str | None = Field(default=None, min_length=3, max_length=3)
+    opening_balance_ore: int | None = None
+    owner_ids: list[UUID] | None = Field(default=None, min_length=1)
+    notes: str | None = None
+
+
+class AccountSummary(BaseModel):
+    id: UUID
+    name: str
+    account_number: str | None
+    currency: str
+    opening_balance_ore: int
+    balance_ore: int
+    notes: str | None
+    created_at: datetime
+    platform: PlatformRead
+    owners: list[PersonRead]
+    movement_count: int = 0
+
+
+class MovementItemWrite(BaseModel):
+    description: str = Field(default="", max_length=400)
+    vendor_id: UUID | None = None
+    vendor_name: str | None = None
+    product_url: str | None = None
+    amount_ore: int
+    quantity: int = Field(default=1, ge=1)
+
+
+class MovementItemRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
     position: int
-    item_number: str | None
-    quantity: int
     description: str
-    line_total_ore: int
-    unit_price_ore: int
-    product: ProductRead | None = None
+    vendor: VendorRead | None = None
+    product_url: str | None
+    amount_ore: int
+    quantity: int
 
 
-class ReceiptWrite(BaseModel):
-    vendor_name: str | None = None
-    store_name: str | None = None
-    store_address: str | None = None
-    cvr: str | None = None
-    purchased_at: datetime | None = None
-    register_no: str | None = None
-    invoice_no: str | None = None
-    payment_method: str | None = None
-    total_ore: int | None = None
-    vat_ore: int | None = None
-    barcode: str | None = None
-    cashier: str | None = None
-    notes: str | None = None
-    status: str | None = None
-    needs_training: bool | None = None
-    tag_ids: list[UUID] | None = None
-    lines: list[ReceiptLineWrite] | None = None
-
-
-class ReceiptRead(BaseModel):
+class AttachmentRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
-    vendor_id: UUID | None
-    vendor_name: str
-    store_name: str | None
-    store_address: str | None
-    cvr: str | None
-    purchased_at: datetime | None
-    register_no: str | None
-    invoice_no: str | None
-    payment_method: str | None
-    total_ore: int
-    vat_ore: int
-    barcode: str | None
-    cashier: str | None
-    status: str
-    needs_training: bool = False
-    lines_sum_ok: bool
-    vat_ok: bool
+    original_filename: str
+    content_type: str
+    size_bytes: int
+    created_at: datetime
+
+
+class MovementWrite(BaseModel):
+    account_id: UUID
+    posted_on: date
+    amount_ore: int | None = None
+    description: str = Field(default="", max_length=400)
+    vendor_id: UUID | None = None
+    vendor_name: str | None = None
+    category_ids: list[UUID] = []
+    notes: str | None = None
+    items: list[MovementItemWrite] = []
+
+
+class MovementUpdate(BaseModel):
+    account_id: UUID | None = None
+    posted_on: date | None = None
+    amount_ore: int | None = None
+    description: str | None = Field(default=None, max_length=400)
+    vendor_id: UUID | None = None
+    vendor_name: str | None = None
+    category_ids: list[UUID] | None = None
+    notes: str | None = None
+    items: list[MovementItemWrite] | None = None
+
+
+class AccountBrief(BaseModel):
+    id: UUID
+    name: str
+    currency: str
+    platform_name: str
+    platform_kind: PlatformKind
+
+
+class MovementRead(BaseModel):
+    id: UUID
+    account_id: UUID
+    posted_on: date
+    amount_ore: int
+    description: str
     notes: str | None
     created_at: datetime
-    lines: list[ReceiptLineRead]
-    tags: list[TagRead]
-    warnings: list[str] = []
-    image_url: str | None = None
+    updated_at: datetime
+    vendor: VendorRead | None
+    categories: list[CategoryRead]
+    items: list[MovementItemRead]
+    attachments: list[AttachmentRead]
+    items_sum_ore: int
+    items_sum_ok: bool
+    account: AccountBrief
 
 
-class TagSpend(BaseModel):
-    tag: TagRead
-    receipt_count: int
+class PersonBalance(BaseModel):
+    person: PersonRead
+    sole_balance_ore: int
+    shared_balance_ore: int
+    account_count: int
+
+
+class CategorySpend(BaseModel):
+    category: CategoryRead
+    movement_count: int
     total_ore: int
 
 
-class DashboardSummary(BaseModel):
-    this_month_ore: int
-    all_time_ore: int
-    receipt_count: int
-    training_count: int = 0
-    by_tag: list[TagSpend]
-    by_vendor: list[dict]
-
-
-class CalendarDay(BaseModel):
-    date: str
-    receipt_count: int
-    total_ore: int
-    receipts: list[ReceiptRead]
+class Dashboard(BaseModel):
+    household_balance_ore: int
+    this_month_in_ore: int
+    this_month_out_ore: int
+    movement_count: int
+    account_count: int
+    people_count: int
+    platform_count: int
+    accounts: list[AccountSummary]
+    by_person: list[PersonBalance]
+    by_category: list[CategorySpend]
+    recent: list[MovementRead]

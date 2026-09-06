@@ -1,31 +1,34 @@
-# Receipts Ledger
+# Household Ledger
 
-Personal ledger for Danish shop receipts. Photograph a till slip, read vendor / date / line items, check the total, tag the receipt as a project or group, and see spend in a calendar.
+Family ledger for **bank accounts** and **investments**, with receipts and line items.
 
-Iteration 1 is built around **Harald Nyborg** (thermal till receipts: `Varenr`, `Antal`, `Varetekst`, `Ialt`). Other Danish vendors can still be scanned as a generic fallback.
+Create the people in the household, the platforms they use (Nordea, Nordnet, …), the accounts on those platforms (one owner or several), then record money going in or out. Each entry can have a vendor, categories, an attached PDF or photo, and one or more line items.
+
+The first run is **empty**. Login is the admin user from `.env`. You add people, platforms, and accounts yourself.
 
 GitHub: [https://github.com/PsyCrow1976/recieptslegder](https://github.com/PsyCrow1976/recieptslegder)
 
-## Features
+## What you can do
 
-- **Scan** — upload a JPEG/PNG; local Tesseract OCR + a Harald Nyborg layout parser extract SKU, qty, description, prices, store, date, invoice, VAT. Review and correct before save. Failed reads are flagged for training.
-- **Verify** — line sum vs `I ALT`, `Heraf moms` vs 25% inclusive VAT
-- **Tags** — create / edit / delete projects or groups; many tags per receipt; spend by tag
-- **Calendar** — month view of purchase dates
-- **Product match** — Harald Nyborg `varenr` → [harald-nyborg.dk product page](https://www.harald-nyborg.dk/product/index?id=45359)
-- **Dashboard** — this month, all time, vendor and tag totals
+- **People** — household members (you, partner, child, …)
+- **Platforms** — bank or investment house (Nordea, Nordnet, others)
+- **Accounts** — named accounts on a platform, with one or more owners for shared accounts
+- **Entries** — money in or money out, with vendor and optional categories
+- **Line items** — split an entry into products; each item has vendor, product URL, and a signed amount
+- **Documents** — PDF statements, receipt photos, or other files on an entry
+- **Vendors & categories** — reusable, or typed inline on an entry
+
+Amounts are stored in øre (integer). Display is Danish DKK (`1.234,50 kr`).
 
 ## Stack
 
 PostgreSQL 16, FastAPI, React + Vite + Tailwind, nginx, Docker Compose.
 
-Receipt scanning is **local Tesseract** (Danish + English) inside the API container. No cloud OCR and no API key.
-
-A plan to train layouts on more vendors (and recover missed line items) is in **[localOCR.md](localOCR.md)** — not implemented yet.
-
 ## Unraid
 
-See **[deploy.md](deploy.md)** for the full Unraid Docker Compose guide.
+See **[deploy.md](deploy.md)**.
+
+This is a **breaking rewrite** of the old receipt-scanner app. Wipe the old Postgres data before starting (see deploy.md).
 
 Short version:
 
@@ -48,7 +51,7 @@ docker compose up -d --build
 
 Open [http://localhost:8085](http://localhost:8085).
 
-Parser tests (no Docker, no API key):
+API docs: [http://localhost:8085/docs](http://localhost:8085/docs).
 
 ```bash
 cd api
@@ -56,6 +59,10 @@ pip install -r requirements.txt
 pytest
 ```
 
-## Training receipts
+## First use
 
-`trainingreceipts/` contains six Harald Nyborg photos used as parser fixtures (Herlev, Maribo, Bladsaxe, August 2026).
+1. Sign in with `ADMIN_USERNAME` / `ADMIN_PASSWORD`.
+2. **People** — add everyone who owns an account.
+3. **Platforms** — e.g. Nordea (bank), Nordnet (investment).
+4. **Accounts** — create each account and assign owner(s).
+5. **Entries** — money in or out. Attach a PDF or photo. Split into line items if you want.

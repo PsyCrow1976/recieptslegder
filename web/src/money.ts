@@ -22,21 +22,31 @@ export function parseDkkInput(value: string): number {
   return Math.round(amount * 100);
 }
 
-export function formatDateTime(iso: string | null | undefined): string {
+export function formatDate(iso: string | null | undefined): string {
   if (!iso) return "—";
-  const date = new Date(iso);
+  const date = iso.length <= 10 ? new Date(`${iso}T12:00:00`) : new Date(iso);
   return new Intl.DateTimeFormat("da-DK", {
     dateStyle: "medium",
-    timeStyle: "short",
     timeZone: "Europe/Copenhagen",
   }).format(date);
 }
 
-export function formatDate(iso: string | null | undefined): string {
-  if (!iso) return "—";
-  const date = new Date(iso);
-  return new Intl.DateTimeFormat("da-DK", {
-    dateStyle: "medium",
-    timeZone: "Europe/Copenhagen",
-  }).format(date);
+export function todayIso(): string {
+  const now = new Date();
+  const tz = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Copenhagen" }));
+  const year = tz.getFullYear();
+  const month = String(tz.getMonth() + 1).padStart(2, "0");
+  const day = String(tz.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
+
+export const COLORS = [
+  "#0f766e",
+  "#1e3a5f",
+  "#9a3412",
+  "#7c3aed",
+  "#be185d",
+  "#0369a1",
+  "#4d7c0f",
+  "#b45309",
+];

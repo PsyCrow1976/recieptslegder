@@ -7,7 +7,7 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-const TOKEN_KEY = "receiptslegder_token";
+const TOKEN_KEY = "household_ledger_token";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setTokenState] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));

@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     admin_username: str = "admin"
     admin_password: str = "admin"
     cors_origins: str = "http://localhost:8085,http://192.168.1.130:8085"
-    receipt_storage_path: str = "/app/data/receipts"
+    document_storage_path: str = "/app/data/documents"
 
     @property
     def cors_origin_list(self) -> list[str]:
