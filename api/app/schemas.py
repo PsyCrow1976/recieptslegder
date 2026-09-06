@@ -248,6 +248,66 @@ class CategorySpend(BaseModel):
     total_ore: int
 
 
+class ImportMatch(BaseModel):
+    id: UUID
+    name: str
+    score: float
+    kind: str
+
+
+class ImportPreviewRow(BaseModel):
+    line_number: int
+    import_key: str
+    posted_on: date | None
+    amount_ore: int | None
+    name: str
+    description: str
+    label: str
+    currency: str
+    status: Literal["new", "duplicate", "skipped"]
+    skip_reason: str | None = None
+    existing_movement_id: UUID | None = None
+    vendor_text: str
+    vendor_exists: bool
+    vendor_match: ImportMatch | None = None
+    category_match: ImportMatch | None = None
+    suggested_vendor_name: str
+    suggested_vendor_id: UUID | None = None
+    suggested_category_id: UUID | None = None
+
+
+class ImportPreview(BaseModel):
+    filename: str
+    detected_account_number: str | None
+    suggested_account_id: UUID | None
+    row_count: int
+    new_count: int
+    duplicate_count: int
+    skipped_count: int
+    rows: list[ImportPreviewRow]
+
+
+class ImportCommitRow(BaseModel):
+    import_key: str
+    posted_on: date
+    amount_ore: int
+    description: str = ""
+    vendor_id: UUID | None = None
+    vendor_name: str | None = None
+    category_ids: list[UUID] = []
+
+
+class ImportCommitRequest(BaseModel):
+    account_id: UUID
+    rows: list[ImportCommitRow]
+
+
+class ImportCommitResult(BaseModel):
+    created: int
+    skipped_duplicate: int
+    skipped_missing: int
+
+
 class Dashboard(BaseModel):
     household_balance_ore: int
     this_month_in_ore: int

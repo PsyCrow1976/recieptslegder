@@ -39,6 +39,12 @@ export default function AccountDetailPage() {
         subtitle={`${account.platform.name} · ${account.currency}${account.account_number ? ` · ${account.account_number}` : ""}`}
         action={
           <div className="flex gap-2">
+            <Link
+              to={`/entries/import`}
+              className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+            >
+              Import CSV
+            </Link>
             <Link to={`/entries/new?account=${account.id}`} className={btnPrimary}>
               Add entry
             </Link>

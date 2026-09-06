@@ -91,7 +91,13 @@ export default function AccountsPage() {
             </select>
           </Field>
           <Field label="Account number (optional)">
-            <input className={inputClass} value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} />
+            <input
+              className={inputClass}
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value)}
+              placeholder="2112-9040298476"
+            />
+            <p className="mt-1 text-xs text-stone-500">For Nordea, use register-account so CSV import can match the file.</p>
           </Field>
           <Field label="Currency">
             <input className={inputClass} value={currency} onChange={(e) => setCurrency(e.target.value.toUpperCase())} maxLength={3} />

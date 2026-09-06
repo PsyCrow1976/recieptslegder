@@ -7,6 +7,7 @@ import CategoriesPage from "./pages/CategoriesPage";
 import DashboardPage from "./pages/DashboardPage";
 import EntriesPage from "./pages/EntriesPage";
 import EntryFormPage from "./pages/EntryFormPage";
+import ImportPage from "./pages/ImportPage";
 import LoginPage from "./pages/LoginPage";
 import PeoplePage from "./pages/PeoplePage";
 import PlatformsPage from "./pages/PlatformsPage";
@@ -28,6 +29,7 @@ function ProtectedRoutes() {
         <Route path="/accounts/:id" element={<AccountDetailPage />} />
         <Route path="/entries" element={<EntriesPage />} />
         <Route path="/entries/new" element={<EntryFormPage />} />
+        <Route path="/entries/import" element={<ImportPage />} />
         <Route path="/entries/:id" element={<EntryFormPage />} />
         <Route path="/vendors" element={<VendorsPage />} />
         <Route path="/categories" element={<CategoriesPage />} />

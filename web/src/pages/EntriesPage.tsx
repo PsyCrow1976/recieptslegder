@@ -53,9 +53,17 @@ export default function EntriesPage() {
         title="Entries"
         subtitle="Money going in or out of an account. Each entry can have a vendor, categories, line items, and documents."
         action={
-          <Link to="/entries/new" className={btnPrimary}>
-            New entry
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              to="/entries/import"
+              className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+            >
+              Import CSV
+            </Link>
+            <Link to="/entries/new" className={btnPrimary}>
+              New entry
+            </Link>
+          </div>
         }
       />
 

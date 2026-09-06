@@ -105,6 +105,51 @@ export type MovementItemWrite = {
   quantity: number;
 };
 
+export type ImportMatch = {
+  id: string;
+  name: string;
+  score: number;
+  kind: string;
+};
+
+export type ImportPreviewRow = {
+  line_number: number;
+  import_key: string;
+  posted_on: string | null;
+  amount_ore: number | null;
+  name: string;
+  description: string;
+  label: string;
+  currency: string;
+  status: "new" | "duplicate" | "skipped";
+  skip_reason: string | null;
+  existing_movement_id: string | null;
+  vendor_text: string;
+  vendor_exists: boolean;
+  vendor_match: ImportMatch | null;
+  category_match: ImportMatch | null;
+  suggested_vendor_name: string;
+  suggested_vendor_id: string | null;
+  suggested_category_id: string | null;
+};
+
+export type ImportPreview = {
+  filename: string;
+  detected_account_number: string | null;
+  suggested_account_id: string | null;
+  row_count: number;
+  new_count: number;
+  duplicate_count: number;
+  skipped_count: number;
+  rows: ImportPreviewRow[];
+};
+
+export type ImportCommitResult = {
+  created: number;
+  skipped_duplicate: number;
+  skipped_missing: number;
+};
+
 export type MovementWrite = {
   account_id: string;
   posted_on: string;
@@ -265,4 +310,25 @@ export const api = {
   },
   deleteAttachment: (token: string, movementId: string, attachmentId: string) =>
     request<Movement>(`/movements/${movementId}/attachments/${attachmentId}`, token, { method: "DELETE" }),
+  previewImport: (token: string, file: File, accountId?: string) => {
+    const body = new FormData();
+    body.append("file", file);
+    if (accountId) body.append("account_id", accountId);
+    return request<ImportPreview>("/imports/preview", token, { method: "POST", body });
+  },
+  commitImport: (
+    token: string,
+    payload: {
+      account_id: string;
+      rows: {
+        import_key: string;
+        posted_on: string;
+        amount_ore: number;
+        description: string;
+        vendor_id?: string | null;
+        vendor_name?: string | null;
+        category_ids?: string[];
+      }[];
+    },
+  ) => request<ImportCommitResult>("/imports/commit", token, { method: "POST", body: JSON.stringify(payload) }),
 };

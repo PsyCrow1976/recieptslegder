@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
-from app.routers import accounts, auth, categories, dashboard, movements, people, platforms, vendors
+from app.routers import accounts, auth, categories, dashboard, imports, movements, people, platforms, vendors
 
 STATIC_DIR = Path("/app/static")
 
@@ -20,6 +20,7 @@ app.include_router(accounts.router, prefix="/api/v1")
 app.include_router(vendors.router, prefix="/api/v1")
 app.include_router(categories.router, prefix="/api/v1")
 app.include_router(movements.router, prefix="/api/v1")
+app.include_router(imports.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
 
 

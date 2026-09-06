@@ -14,6 +14,7 @@ GitHub: [https://github.com/PsyCrow1976/recieptslegder](https://github.com/PsyCr
 - **Platforms** — bank or investment house (Nordea, Nordnet, others)
 - **Accounts** — named accounts on a platform, with one or more owners for shared accounts
 - **Entries** — money in or money out, with vendor and optional categories
+- **CSV import** — Nordea account export; preview new vs duplicate rows and suggested vendors/categories
 - **Line items** — split an entry into products; each item has vendor, product URL, and a signed amount
 - **Documents** — PDF statements, receipt photos, or other files on an entry
 - **Vendors & categories** — reusable, or typed inline on an entry
