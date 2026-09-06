@@ -120,15 +120,24 @@ export default function AccountDetailPage() {
   const monthFrom = monthStartIso(monthYear, monthIndex);
   const monthTo = monthEndIso(monthYear, monthIndex);
   const monthRows = useMemo(
-    () => movements.filter((row) => inDateRange(row.posted_on, monthFrom, monthTo)),
+    () =>
+      movements
+        .filter((row) => inDateRange(row.posted_on, monthFrom, monthTo))
+        .slice()
+        .sort((a, b) => a.posted_on.localeCompare(b.posted_on) || a.created_at.localeCompare(b.created_at)),
     [movements, monthFrom, monthTo],
   );
-  const incomeRows = monthRows.filter((row) => row.amount_ore > 0);
-  const expenseRows = monthRows.filter((row) => row.amount_ore < 0);
-  const incomeOre = incomeRows.reduce((sum, row) => sum + row.amount_ore, 0);
-  const expenseOre = expenseRows.reduce((sum, row) => sum + row.amount_ore, 0);
+  const incomeOre = monthRows.filter((row) => row.amount_ore > 0).reduce((sum, row) => sum + row.amount_ore, 0);
+  const expenseOre = monthRows.filter((row) => row.amount_ore < 0).reduce((sum, row) => sum + row.amount_ore, 0);
   const monthStartBalance = account ? balanceAt(account, movements, null, monthFrom) : 0;
   const monthEndBalance = account ? balanceAt(account, movements, monthTo, null) : 0;
+  const monthLines = useMemo(() => {
+    let running = monthStartBalance;
+    return monthRows.map((movement) => {
+      running += movement.amount_ore;
+      return { movement, balance: running };
+    });
+  }, [monthRows, monthStartBalance]);
 
   if (error && !account) return <p className="text-rose-700">{error}</p>;
   if (!account) return <p className="text-stone-500">Loading…</p>;
@@ -282,28 +291,72 @@ export default function AccountDetailPage() {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
-            <div className="flex items-center justify-between bg-emerald-50 px-4 py-3">
-              <p className="font-semibold text-emerald-900">Income</p>
-              <Money ore={incomeOre} />
-            </div>
-            {incomeRows.length === 0 ? (
-              <p className="px-4 py-3 text-sm text-stone-500">No income this month.</p>
-            ) : (
-              incomeRows.map((movement) => <EntryRow key={movement.id} movement={movement} />)
-            )}
-          </div>
-
-          <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
-            <div className="flex items-center justify-between bg-rose-50 px-4 py-3">
-              <p className="font-semibold text-rose-900">Expenses</p>
-              <Money ore={expenseOre} />
-            </div>
-            {expenseRows.length === 0 ? (
-              <p className="px-4 py-3 text-sm text-stone-500">No expenses this month.</p>
-            ) : (
-              expenseRows.map((movement) => <EntryRow key={movement.id} movement={movement} />)
-            )}
+          <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+            <table className="min-w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-stone-200 bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
+                  <th className="px-4 py-3 font-medium">Date</th>
+                  <th className="px-4 py-3 font-medium">Entry</th>
+                  <th className="px-4 py-3 text-right font-medium text-emerald-800">Income</th>
+                  <th className="px-4 py-3 text-right font-medium text-rose-800">Expenses</th>
+                  <th className="px-4 py-3 text-right font-medium">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-stone-100 bg-stone-50/80">
+                  <td className="px-4 py-2 text-stone-500" colSpan={4}>
+                    Start of month
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    <Money ore={monthStartBalance} />
+                  </td>
+                </tr>
+                {monthLines.length === 0 ? (
+                  <tr>
+                    <td className="px-4 py-6 text-stone-500" colSpan={5}>
+                      No income or expenses this month.
+                    </td>
+                  </tr>
+                ) : (
+                  monthLines.map(({ movement, balance }) => (
+                    <tr key={movement.id} className="border-b border-stone-100 hover:bg-stone-50">
+                      <td className="whitespace-nowrap px-4 py-3 text-stone-500">{formatDate(movement.posted_on)}</td>
+                      <td className="px-4 py-3">
+                        <Link to={`/entries/${movement.id}`} className="font-medium text-ink hover:underline">
+                          {movement.description || movement.vendor?.name || "Entry"}
+                        </Link>
+                        {movement.vendor && movement.vendor.name !== movement.description ? (
+                          <p className="text-xs text-stone-500">{movement.vendor.name}</p>
+                        ) : null}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-right">
+                        {movement.amount_ore > 0 ? <Money ore={movement.amount_ore} /> : ""}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-right">
+                        {movement.amount_ore < 0 ? <Money ore={movement.amount_ore} /> : ""}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-right">
+                        <Money ore={balance} />
+                      </td>
+                    </tr>
+                  ))
+                )}
+                <tr className="bg-stone-50 font-medium">
+                  <td className="px-4 py-3" colSpan={2}>
+                    Total / end of month
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right">
+                    <Money ore={incomeOre} />
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right">
+                    <Money ore={expenseOre} />
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right">
+                    <Money ore={monthEndBalance} />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
       )}
