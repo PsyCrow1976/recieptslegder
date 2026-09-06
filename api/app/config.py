@@ -12,12 +12,7 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 10080
     admin_username: str = "admin"
     admin_password: str = "admin"
-    cors_origins: str = "http://localhost:8085,http://192.168.1.130:8085"
     document_storage_path: str = "/app/data/documents"
-
-    @property
-    def cors_origin_list(self) -> list[str]:
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
 @lru_cache

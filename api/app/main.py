@@ -1,41 +1,42 @@
 from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.routers import accounts, auth, categories, dashboard, movements, people, platforms, vendors
 
-app = FastAPI(
-    title="Household Ledger API",
-    description="Family bank and investment ledger with receipts and line items",
-    version="2.0.0",
-    docs_url="/docs",
-    openapi_url="/openapi.json",
-)
+STATIC_DIR = Path("/app/static")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origin_list,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 Path(settings.document_storage_path).mkdir(parents=True, exist_ok=True)
 
-api = FastAPI()
-api.include_router(auth.router)
-api.include_router(people.router)
-api.include_router(platforms.router)
-api.include_router(accounts.router)
-api.include_router(vendors.router)
-api.include_router(categories.router)
-api.include_router(movements.router)
-api.include_router(dashboard.router)
-app.mount("/api/v1", api)
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(people.router, prefix="/api/v1")
+app.include_router(platforms.router, prefix="/api/v1")
+app.include_router(accounts.router, prefix="/api/v1")
+app.include_router(vendors.router, prefix="/api/v1")
+app.include_router(categories.router, prefix="/api/v1")
+app.include_router(movements.router, prefix="/api/v1")
+app.include_router(dashboard.router, prefix="/api/v1")
 
 
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+if STATIC_DIR.is_dir():
+    assets = STATIC_DIR / "assets"
+    if assets.is_dir():
+        app.mount("/assets", StaticFiles(directory=assets), name="assets")
+
+    @app.get("/{full_path:path}")
+    def spa(full_path: str):
+        static_root = STATIC_DIR.resolve()
+        candidate = (STATIC_DIR / full_path).resolve()
+        if candidate.is_file() and candidate.is_relative_to(static_root):
+            return FileResponse(candidate)
+        return FileResponse(STATIC_DIR / "index.html")

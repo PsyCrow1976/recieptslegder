@@ -5,17 +5,14 @@
 
 Port **8085** is used so this stack does not collide with FitLineVentory on **8080**.
 
-This rewrite **replaces** the old receipt-scanner database. You must wipe Postgres data from the previous version before starting.
-
 ---
 
 ## What gets installed
 
 | Container | Role |
 |-----------|------|
-| `db` | PostgreSQL 16 — people, platforms, accounts, entries |
-| `api` | FastAPI — ledger and file uploads |
-| `web` | nginx — web UI + API proxy on port `8085` |
+| `db` | PostgreSQL 16 |
+| `web` | The website (login, people, accounts, entries, uploads) on port `8085` |
 
 Uploaded PDFs and receipt photos are stored on a Docker volume (or Unraid appdata if you use the override file).
 
@@ -35,27 +32,22 @@ docker compose version
 
 ---
 
-## Breaking upgrade from the receipt scanner
-
-If you already ran the old app:
+## Upgrade from the old `api` + `web` stack
 
 ```bash
 cd /mnt/user/appdata/receiptslegder
 docker compose down
-# Keep a copy if you still want old receipt data, then:
-rm -rf /mnt/user/appdata/receiptslegder/postgres
-rm -rf /mnt/user/appdata/receiptslegder/receipts
 git fetch origin
 git reset --hard origin/main
 ```
 
-If you used the named Docker volume instead of appdata:
+Edit `docker-compose.override.yml` if you have one: it must mount documents on **`web`**, not `api`. Use `docker-compose.override.example.yml` as the template.
+
+Then:
 
 ```bash
-docker compose down -v
+docker compose up -d --build
 ```
-
-`-v` deletes the database. That is required for this schema.
 
 ---
 
@@ -100,7 +92,6 @@ DATABASE_URL=postgresql+psycopg://receiptslegder:your-strong-db-password@db:5432
 JWT_SECRET=your-long-random-secret
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=your-admin-password
-CORS_ORIGINS=http://localhost:8085,http://192.168.1.130:8085
 TZ=Europe/Copenhagen
 ```
 
@@ -132,8 +123,6 @@ Expected: `{"status":"ok"}`
 
 Open `http://192.168.1.130:8085` and sign in.
 
-API docs: `http://192.168.1.130:8085/docs`
-
 ---
 
 ## First use
@@ -143,7 +132,7 @@ The database has **no people, platforms, accounts, or entries**.
 1. **People** — you, your girlfriend, her daughter.
 2. **Platforms** — Nordea (bank), Nordnet (investment), anything else.
 3. **Accounts** — each account on a platform; pick one owner or several for a shared account.
-4. **Entries** — money in or out. Attach PDF / photo. Add line items with vendor, product link, and amount.
+4. **Entries** — money in or out. Attach PDF / photo. Add line items with vendor, product URL, and amount.
 
 ---
 
@@ -155,7 +144,7 @@ git pull
 docker compose up -d --build
 ```
 
-Migrations run when the API container starts.
+Migrations run when the website container starts.
 
 ---
 
@@ -183,7 +172,7 @@ docker volume rm receiptslegder_postgres_data receiptslegder_documents 2>/dev/nu
 docker compose up -d --build
 ```
 
-Wait until `docker compose ps` shows `db` healthy and `api` up, then sign in with the values in `.env`.
+Wait until `docker compose ps` shows `db` healthy and `web` up, then sign in with the values in `.env`.
 
 `DATABASE_URL` must use the same password as `POSTGRES_PASSWORD`.
 
@@ -193,12 +182,12 @@ Wait until `docker compose ps` shows `db` healthy and `api` up, then sign in wit
 
 ### 502 Bad Gateway
 
-Wait for migrations, then `docker compose logs api --tail 50`.
+Wait for migrations, then `docker compose logs web --tail 50`.
 
 ### Login fails
 
-Sign in with `ADMIN_USERNAME` and `ADMIN_PASSWORD` from `.env`. The API now applies those values on every start. If login still fails, run **Purge the database** above.
+Sign in with `ADMIN_USERNAME` and `ADMIN_PASSWORD` from `.env`. Those values are applied when the website starts. If login still fails, run **Purge the database** above.
 
-### Alembic / schema errors after git pull
+### Compose error about service `api`
 
-This schema is new. Wipe Postgres as in **Purge the database** above.
+The old stack had a separate `api` container. Remove any `api:` block from `docker-compose.override.yml`, then `docker compose down && docker compose up -d --build`.

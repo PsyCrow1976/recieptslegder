@@ -22,13 +22,11 @@ Amounts are stored in øre (integer). Display is Danish DKK (`1.234,50 kr`).
 
 ## Stack
 
-PostgreSQL 16, FastAPI, React + Vite + Tailwind, nginx, Docker Compose.
+PostgreSQL 16, a single website container, Docker Compose. Two containers: `db` and `web`.
 
 ## Unraid
 
 See **[deploy.md](deploy.md)**.
-
-This is a **breaking rewrite** of the old receipt-scanner app. Wipe the old Postgres data before starting (see deploy.md).
 
 Short version:
 
@@ -42,6 +40,8 @@ docker compose up -d --build
 
 Open [http://192.168.1.130:8085](http://192.168.1.130:8085).
 
+If you already ran the previous three-container stack (`db` + `api` + `web`), run `docker compose down` first and remove any `api:` section from `docker-compose.override.yml`.
+
 ## Local development
 
 ```bash
@@ -50,8 +50,6 @@ docker compose up -d --build
 ```
 
 Open [http://localhost:8085](http://localhost:8085).
-
-API docs: [http://localhost:8085/docs](http://localhost:8085/docs).
 
 ```bash
 cd api
