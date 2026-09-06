@@ -4,8 +4,6 @@
 #
 # Stores PostgreSQL data and uploaded documents on Unraid appdata for easier backup.
 # Docker Compose merges this file automatically with docker-compose.yml.
-#
-# If you still have an `api:` section from the old stack, remove it.
 
 services:
   db:

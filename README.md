@@ -24,23 +24,22 @@ Amounts are stored in øre (integer). Display is Danish DKK (`1.234,50 kr`).
 
 PostgreSQL 16, a single website container, Docker Compose. Two containers: `db` and `web`.
 
-## Unraid
+## Unraid (clean folder)
 
-See **[deploy.md](deploy.md)**.
-
-Short version:
+See **[deploy.md](deploy.md)** for the full walkthrough.
 
 ```bash
 mkdir -p /mnt/user/appdata/receiptslegder && cd /mnt/user/appdata/receiptslegder
 git clone https://github.com/PsyCrow1976/recieptslegder.git .
-cp .env.example .env && nano .env   # set passwords
+cp .env.example .env && nano .env
+mkdir -p postgres documents
 cp docker-compose.override.example.yml docker-compose.override.yml
 docker compose up -d --build
 ```
 
-Open [http://192.168.1.130:8085](http://192.168.1.130:8085).
+Open [http://192.168.1.130:8085](http://192.168.1.130:8085) and sign in with `ADMIN_USERNAME` / `ADMIN_PASSWORD` from `.env`.
 
-If you already ran the previous three-container stack (`db` + `api` + `web`), run `docker compose down` first and remove any `api:` section from `docker-compose.override.yml`.
+There is no repo to `git pull` until after that clone. Use `git pull` only for later updates.
 
 ## Local development
 
