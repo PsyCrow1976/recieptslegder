@@ -59,6 +59,8 @@ export function formatMonthTitle(year: number, monthIndex: number): string {
   return new Intl.DateTimeFormat("da-DK", { month: "long", year: "numeric" }).format(new Date(year, monthIndex, 1));
 }
 
+export const MONTH_LABELS_DA = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+
 export function inDateRange(iso: string, from: string, to: string): boolean {
   if (from && iso < from) return false;
   if (to && iso > to) return false;

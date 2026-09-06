@@ -8,6 +8,7 @@ import {
   formatDkk,
   formatMonthTitle,
   inDateRange,
+  MONTH_LABELS_DA,
   monthEndIso,
   monthStartIso,
   parseDkkInput,
@@ -33,6 +34,124 @@ function balanceAt(
     total += movement.amount_ore;
   }
   return total;
+}
+
+type CategoryYearRow = {
+  key: string;
+  name: string;
+  months: number[];
+  year: number;
+};
+
+function categoryLabel(movement: Movement): { key: string; name: string } {
+  const first = movement.categories[0];
+  if (!first) return { key: "other", name: "Other" };
+  return { key: first.id, name: first.name };
+}
+
+function yearCategoryRows(movements: Movement[], year: number, income: boolean): CategoryYearRow[] {
+  const prefix = `${year}-`;
+  const map = new Map<string, CategoryYearRow>();
+  for (const movement of movements) {
+    if (!movement.posted_on.startsWith(prefix)) continue;
+    if (income && movement.amount_ore <= 0) continue;
+    if (!income && movement.amount_ore >= 0) continue;
+    const month = Number(movement.posted_on.slice(5, 7)) - 1;
+    const { key, name } = categoryLabel(movement);
+    let row = map.get(key);
+    if (!row) {
+      row = { key, name, months: Array(12).fill(0), year: 0 };
+      map.set(key, row);
+    }
+    row.months[month] += movement.amount_ore;
+    row.year += movement.amount_ore;
+  }
+  return [...map.values()].sort((a, b) => {
+    if (a.key === "other") return 1;
+    if (b.key === "other") return -1;
+    return a.name.localeCompare(b.name, "da");
+  });
+}
+
+function totalsFromRows(rows: CategoryYearRow[]): number[] {
+  const months = Array(12).fill(0);
+  for (const row of rows) {
+    row.months.forEach((value, index) => {
+      months[index] += value;
+    });
+  }
+  return months;
+}
+
+function Cell({ ore }: { ore: number }) {
+  if (!ore) return <span className="text-stone-300">—</span>;
+  return <Money ore={ore} />;
+}
+
+function YearMatrix({
+  title,
+  rows,
+  totals,
+  onMonth,
+}: {
+  title: string;
+  rows: CategoryYearRow[];
+  totals: number[];
+  onMonth: (monthIndex: number) => void;
+}) {
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+      <table className="min-w-full text-left text-sm">
+        <thead>
+          <tr className="border-b border-stone-200 bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
+            <th className="sticky left-0 bg-stone-50 px-3 py-3 font-medium">{title}</th>
+            {MONTH_LABELS_DA.map((label, index) => (
+              <th key={label} className="px-2 py-3 text-right font-medium">
+                <button type="button" className="hover:text-brand-700 hover:underline" onClick={() => onMonth(index)}>
+                  {label}
+                </button>
+              </th>
+            ))}
+            <th className="px-3 py-3 text-right font-medium">Year</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.length === 0 ? (
+            <tr>
+              <td className="px-3 py-4 text-stone-500" colSpan={14}>
+                No {title.toLowerCase()} this year.
+              </td>
+            </tr>
+          ) : (
+            rows.map((row) => (
+              <tr key={row.key} className="border-t border-stone-100">
+                <td className="sticky left-0 bg-white px-3 py-2 font-medium">{row.name}</td>
+                {row.months.map((ore, index) => (
+                  <td key={index} className="whitespace-nowrap px-2 py-2 text-right">
+                    <Cell ore={ore} />
+                  </td>
+                ))}
+                <td className="whitespace-nowrap px-3 py-2 text-right font-medium">
+                  <Cell ore={row.year} />
+                </td>
+              </tr>
+            ))
+          )}
+          <tr className="border-t border-stone-200 bg-stone-50 font-medium">
+            <td className="sticky left-0 bg-stone-50 px-3 py-2">Total</td>
+            {totals.map((ore, index) => (
+              <td key={index} className="whitespace-nowrap px-2 py-2 text-right">
+                <Cell ore={ore} />
+              </td>
+            ))}
+            <td className="whitespace-nowrap px-3 py-2 text-right">
+              <Cell ore={totals.reduce((sum, value) => sum + value, 0)} />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 function EntryRow({ movement }: { movement: Movement }) {
@@ -64,7 +183,7 @@ export default function AccountDetailPage() {
   const [opening, setOpening] = useState("0");
   const [openingOn, setOpeningOn] = useState("");
   const [saving, setSaving] = useState(false);
-  const [view, setView] = useState<"list" | "month">("month");
+  const [view, setView] = useState<"list" | "month" | "year">("month");
   const [listFrom, setListFrom] = useState("");
   const [listTo, setListTo] = useState(todayIso());
   const today = todayIso();
@@ -138,6 +257,17 @@ export default function AccountDetailPage() {
       return { movement, balance: running };
     });
   }, [monthRows, monthStartBalance]);
+
+  const incomeYearRows = useMemo(() => yearCategoryRows(movements, monthYear, true), [movements, monthYear]);
+  const expenseYearRows = useMemo(() => yearCategoryRows(movements, monthYear, false), [movements, monthYear]);
+  const incomeYearTotals = useMemo(() => totalsFromRows(incomeYearRows), [incomeYearRows]);
+  const expenseYearTotals = useMemo(() => totalsFromRows(expenseYearRows), [expenseYearRows]);
+  const yearMonthBalances = useMemo(() => {
+    if (!account) return Array(12).fill(0);
+    return Array.from({ length: 12 }, (_, month) =>
+      balanceAt(account, movements, monthEndIso(monthYear, month), null),
+    );
+  }, [account, movements, monthYear]);
 
   if (error && !account) return <p className="text-rose-700">{error}</p>;
   if (!account) return <p className="text-stone-500">Loading…</p>;
@@ -216,6 +346,13 @@ export default function AccountDetailPage() {
         </button>
         <button
           type="button"
+          className={`rounded-lg px-4 py-2 text-sm font-semibold ${view === "year" ? "bg-brand-600 text-white" : "bg-white text-stone-700 border border-stone-300"}`}
+          onClick={() => setView("year")}
+        >
+          Year
+        </button>
+        <button
+          type="button"
           className={`rounded-lg px-4 py-2 text-sm font-semibold ${view === "list" ? "bg-brand-600 text-white" : "bg-white text-stone-700 border border-stone-300"}`}
           onClick={() => setView("list")}
         >
@@ -243,6 +380,66 @@ export default function AccountDetailPage() {
               ))}
             </div>
           )}
+        </section>
+      )}
+
+      {view === "year" && (
+        <section className="mt-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <button type="button" className={btnGhost} onClick={() => setMonthYear((year) => year - 1)}>
+              Previous
+            </button>
+            <h2 className="text-xl text-ink">{monthYear}</h2>
+            <button type="button" className={btnGhost} onClick={() => setMonthYear((year) => year + 1)}>
+              Next
+            </button>
+          </div>
+          <YearMatrix
+            title="Income"
+            rows={incomeYearRows}
+            totals={incomeYearTotals}
+            onMonth={(index) => {
+              setMonthIndex(index);
+              setView("month");
+            }}
+          />
+          <YearMatrix
+            title="Expenses"
+            rows={expenseYearRows}
+            totals={expenseYearTotals}
+            onMonth={(index) => {
+              setMonthIndex(index);
+              setView("month");
+            }}
+          />
+          <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+            <table className="min-w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-stone-200 bg-stone-50 text-xs uppercase tracking-wide text-stone-500">
+                  <th className="sticky left-0 bg-stone-50 px-3 py-3 font-medium">Balance</th>
+                  {MONTH_LABELS_DA.map((label) => (
+                    <th key={label} className="px-2 py-3 text-right font-medium">
+                      {label}
+                    </th>
+                  ))}
+                  <th className="px-3 py-3 text-right font-medium">Year</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="sticky left-0 bg-white px-3 py-3 font-medium">End of month</td>
+                  {yearMonthBalances.map((ore, index) => (
+                    <td key={index} className="whitespace-nowrap px-2 py-3 text-right">
+                      <Money ore={ore} />
+                    </td>
+                  ))}
+                  <td className="whitespace-nowrap px-3 py-3 text-right font-medium">
+                    <Money ore={yearMonthBalances[11] ?? 0} />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
 
