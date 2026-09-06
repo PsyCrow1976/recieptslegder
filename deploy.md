@@ -1,6 +1,6 @@
 # Deploy Household Ledger on Unraid (clean install)
 
-Empty folder, current repo, two containers. No leftover database, no old `api` container.
+Household ledger for bank and investment accounts (Nordea, Nordnet, shared owners, receipts, month/year views). Empty folder, current repo, two containers.
 
 **Server:** `192.168.1.130`  
 **URL:** `http://192.168.1.130:8085`  
@@ -10,6 +10,8 @@ Empty folder, current repo, two containers. No leftover database, no old `api` c
 |-----------|------|
 | `db` | PostgreSQL 16 |
 | `web` | The website on port `8085` |
+
+See **[README.md](README.md)** for what the app does. This file is only how to run it on Unraid.
 
 ---
 
@@ -77,7 +79,7 @@ TZ=Europe/Copenhagen
 | Variable | Meaning |
 |----------|---------|
 | `POSTGRES_PASSWORD` | Database password (must match `DATABASE_URL`) |
-| `JWT_SECRET` | Random string for login cookies/tokens |
+| `JWT_SECRET` | Random string for login tokens |
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Website login. Applied every time `web` starts |
 
 Save: `Ctrl+O`, Enter, `Ctrl+X`.
@@ -130,8 +132,11 @@ The database is empty except for that login.
 
 1. **People** — you, your girlfriend, her daughter.
 2. **Platforms** — Nordea (bank), Nordnet (investment), anything else.
-3. **Accounts** — each account on a platform; one owner or several if it is shared.
-4. **Entries** — money in or out. Attach a PDF or photo. Add line items if you want.
+3. **Accounts** — each account on a platform; one owner or several if it is shared. For Nordea, set account number to `register-account` (example `2112-9040298476`).
+4. **Start amount and date** on the account — money that was there that morning. Balance = that amount + entries on or after that date.
+5. **Categories and vendors** you care about (optional, but helps CSV matching).
+6. **Entries → Import CSV** for a Nordea export, or add money in/out by hand. Review new vs duplicate rows, then import.
+7. Open the account: **Month** statement, **Year** category totals, **List** with a date range.
 
 ---
 
@@ -142,6 +147,8 @@ cd /mnt/user/appdata/receiptslegder
 git pull
 docker compose up -d --build
 ```
+
+Migrations run when the website container starts. No extra API container.
 
 ---
 
@@ -163,3 +170,14 @@ Also copy `postgres/` and `documents/` if you used step 3.
 **Login rejected** — use the username and password in `.env`, not an old password. Restart: `docker compose up -d`. Those values are written into the database when `web` starts.
 
 **Port in use** — change `HTTP_PORT` in `.env` and run `docker compose up -d` again.
+
+**Wipe the database and start empty again** (keeps the git folder):
+
+```bash
+cd /mnt/user/appdata/receiptslegder
+docker compose down
+rm -rf postgres documents
+mkdir -p postgres documents
+docker volume rm receiptslegder_postgres_data receiptslegder_documents 2>/dev/null || true
+docker compose up -d --build
+```

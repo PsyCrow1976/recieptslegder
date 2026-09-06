@@ -1,33 +1,63 @@
 # Household Ledger
 
-Family ledger for **bank accounts** and **investments**, with receipts and line items.
+A private website for one household’s **bank accounts** and **investments**. It is meant for you, your girlfriend, and her daughter: Nordea accounts, Nordnet depots, money in and out, receipts, and category totals.
 
-Create the people in the household, the platforms they use (Nordea, Nordnet, …), the accounts on those platforms (one owner or several), then record money going in or out. Each entry can have a vendor, categories, an attached PDF or photo, and one or more line items.
-
-The first run is **empty**. Login is the admin user from `.env`. You add people, platforms, and accounts yourself.
+The first run is empty except for the login in `.env`. You create people, platforms, and accounts yourself.
 
 GitHub: [https://github.com/PsyCrow1976/recieptslegder](https://github.com/PsyCrow1976/recieptslegder)
 
-## What you can do
+## Purpose
 
-- **People** — household members (you, partner, child, …)
-- **Platforms** — bank or investment house (Nordea, Nordnet, others)
-- **Accounts** — named accounts on a platform, with one or more owners for shared accounts
-- **Entries** — money in or money out, with vendor and optional categories
-- **CSV import** — Nordea account export; preview new vs duplicate rows and suggested vendors/categories
-- **Line items** — split an entry into products; each item has vendor, product URL, and a signed amount
-- **Documents** — PDF statements, receipt photos, or other files on an entry
-- **Vendors & categories** — reusable, or typed inline on an entry
+Keep a single picture of household money:
 
-Amounts are stored in øre (integer). Display is Danish DKK (`1.234,50 kr`).
+- Who owns which account (including shared accounts)
+- What came in and what went out
+- Which vendor and category each amount belongs to
+- How the balance moved through a month and a year
+
+It is a website on Unraid, not a public API or a mobile app. Two Docker containers: Postgres and the site.
+
+## How you set it up
+
+1. **People** — household members who can own accounts.
+2. **Platforms** — Nordea (bank), Nordnet (investment), or anything else.
+3. **Accounts** — each account on a platform, with one owner or several if it is shared. For Nordea, put the register and account number on the account (for example `2112-9040298476`) so CSV import can match the file.
+4. **Start amount** — on each account, the money that was there on a given date. Current balance is that amount plus entries **on or after** that date. Older entries stay in the list but do not change the balance.
+5. **Vendors and categories** — optional, but useful before a large CSV import so names can be matched.
+6. **Entries** — money in or out, by hand or from a bank CSV. An entry can have a vendor, categories, a PDF or photo, and line items (product, link, signed amount).
+
+## Account views
+
+Open an account for three views:
+
+| View | What you see |
+|------|----------------|
+| **Month** | Dated statement: income in one column, expenses in the other, running balance after each line, start and end of month |
+| **Year** | Jan–Dec totals per category for income and for expenses. No category → **Other**. Bottom row is the end-of-month balance. Click a month name to open that month |
+| **List** | Long list with a from/to date range |
+
+Home shows household total, this month in/out, accounts, and a short setup list until data exists.
+
+## Nordea CSV import
+
+**Entries → Import CSV** (or from an account).
+
+1. Choose the account and the bank CSV (`Bogføringsdato;Beløb;…`).
+2. Review every row: **new**, **duplicate** (already in the ledger), or **skipped** (for example *Reserveret*).
+3. Vendors and categories are suggested from the name (exact match, close match, or create).
+4. Import only the new rows. Importing the same file again marks those lines as duplicates.
+
+Bank statement files can live locally under `input/<reg>-<account>/`. That folder is gitignored so statements are not pushed to GitHub.
 
 ## Stack
 
-PostgreSQL 16, a single website container, Docker Compose. Two containers: `db` and `web`.
+PostgreSQL 16 and one website container. Docker Compose. Amounts are øre (integers), shown as Danish DKK (`1.234,50 kr`). Time zone `Europe/Copenhagen`.
 
-## Unraid (clean folder)
+## Unraid
 
-See **[deploy.md](deploy.md)** for the full walkthrough.
+See **[deploy.md](deploy.md)** for a clean install.
+
+Short version when the folder is empty:
 
 ```bash
 mkdir -p /mnt/user/appdata/receiptslegder && cd /mnt/user/appdata/receiptslegder
@@ -40,7 +70,15 @@ docker compose up -d --build
 
 Open [http://192.168.1.130:8085](http://192.168.1.130:8085) and sign in with `ADMIN_USERNAME` / `ADMIN_PASSWORD` from `.env`.
 
-There is no repo to `git pull` until after that clone. Use `git pull` only for later updates.
+Later updates:
+
+```bash
+cd /mnt/user/appdata/receiptslegder
+git pull
+docker compose up -d --build
+```
+
+Database migrations run when the website container starts.
 
 ## Local development
 
@@ -56,11 +94,3 @@ cd api
 pip install -r requirements.txt
 pytest
 ```
-
-## First use
-
-1. Sign in with `ADMIN_USERNAME` / `ADMIN_PASSWORD`.
-2. **People** — add everyone who owns an account.
-3. **Platforms** — e.g. Nordea (bank), Nordnet (investment).
-4. **Accounts** — create each account and assign owner(s).
-5. **Entries** — money in or out. Attach a PDF or photo. Split into line items if you want.
