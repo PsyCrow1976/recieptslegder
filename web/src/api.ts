@@ -44,6 +44,7 @@ export type AccountSummary = {
   account_number: string | null;
   currency: string;
   opening_balance_ore: number;
+  opening_on: string | null;
   balance_ore: number;
   notes: string | null;
   created_at: string;
@@ -263,6 +264,7 @@ export const api = {
       account_number?: string;
       currency: string;
       opening_balance_ore: number;
+      opening_on?: string | null;
       owner_ids: string[];
       notes?: string;
     },

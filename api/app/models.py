@@ -100,6 +100,7 @@ class Account(Base):
     account_number: Mapped[str | None] = mapped_column(String(80))
     currency: Mapped[str] = mapped_column(String(3), default="DKK", nullable=False)
     opening_balance_ore: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    opening_on: Mapped[date | None] = mapped_column(Date)
     notes: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

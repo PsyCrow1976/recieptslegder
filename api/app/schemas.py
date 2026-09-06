@@ -126,6 +126,7 @@ class AccountWrite(BaseModel):
     account_number: str | None = None
     currency: str = Field(default="DKK", min_length=3, max_length=3)
     opening_balance_ore: int = 0
+    opening_on: date | None = None
     owner_ids: list[UUID] = Field(min_length=1)
     notes: str | None = None
 
@@ -136,6 +137,7 @@ class AccountUpdate(BaseModel):
     account_number: str | None = None
     currency: str | None = Field(default=None, min_length=3, max_length=3)
     opening_balance_ore: int | None = None
+    opening_on: date | None = None
     owner_ids: list[UUID] | None = Field(default=None, min_length=1)
     notes: str | None = None
 
@@ -146,6 +148,7 @@ class AccountSummary(BaseModel):
     account_number: str | None
     currency: str
     opening_balance_ore: int
+    opening_on: date | None = None
     balance_ore: int
     notes: str | None
     created_at: datetime

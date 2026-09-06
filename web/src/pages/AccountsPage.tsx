@@ -15,6 +15,7 @@ export default function AccountsPage() {
   const [accountNumber, setAccountNumber] = useState("");
   const [currency, setCurrency] = useState("DKK");
   const [opening, setOpening] = useState("0");
+  const [openingOn, setOpeningOn] = useState("");
   const [ownerIds, setOwnerIds] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
@@ -45,12 +46,14 @@ export default function AccountsPage() {
         account_number: accountNumber || undefined,
         currency,
         opening_balance_ore: parseDkkInput(opening),
+        opening_on: openingOn || null,
         owner_ids: ownerIds,
         notes: notes || undefined,
       });
       setName("");
       setAccountNumber("");
       setOpening("0");
+      setOpeningOn("");
       setNotes("");
       setOwnerIds([]);
       reload();
@@ -102,8 +105,12 @@ export default function AccountsPage() {
           <Field label="Currency">
             <input className={inputClass} value={currency} onChange={(e) => setCurrency(e.target.value.toUpperCase())} maxLength={3} />
           </Field>
-          <Field label="Opening balance">
-            <input className={inputClass} value={opening} onChange={(e) => setOpening(e.target.value)} />
+          <Field label="Start amount">
+            <input className={inputClass} value={opening} onChange={(e) => setOpening(e.target.value)} placeholder="0,00" />
+            <p className="mt-1 text-xs text-stone-500">Money on the account at the start of the date below. Later entries are added on top.</p>
+          </Field>
+          <Field label="Start date">
+            <input type="date" className={inputClass} value={openingOn} onChange={(e) => setOpeningOn(e.target.value)} />
           </Field>
           <Field label="Notes">
             <input className={inputClass} value={notes} onChange={(e) => setNotes(e.target.value)} />
@@ -148,6 +155,11 @@ export default function AccountsPage() {
                     {account.platform.name} · {account.currency}
                     {account.account_number ? ` · ${account.account_number}` : ""}
                   </p>
+                  {account.opening_on ? (
+                    <p className="mt-1 text-xs text-stone-500">
+                      Start <Money ore={account.opening_balance_ore} /> on {account.opening_on}
+                    </p>
+                  ) : null}
                   <div className="mt-2 flex flex-wrap gap-1">
                     {account.owners.map((owner) => (
                       <Chip key={owner.id} label={owner.name} color={owner.color} />

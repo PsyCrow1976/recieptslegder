@@ -1,5 +1,6 @@
+from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Any
+from typing import Any, Iterable
 
 
 def parse_dkk_to_ore(value: Any) -> int | None:
@@ -28,6 +29,20 @@ def parse_dkk_to_ore(value: Any) -> int | None:
     except Exception:
         return None
     return int((amount * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def ledger_balance(
+    opening_ore: int,
+    opening_on: date | None,
+    movements: Iterable[tuple[date, int]],
+) -> int:
+    """Start amount plus entries on or after the start date."""
+    total = int(opening_ore or 0)
+    for posted_on, amount_ore in movements:
+        if opening_on is not None and posted_on < opening_on:
+            continue
+        total += amount_ore
+    return total
 
 
 def format_dkk(ore: int | None) -> str:

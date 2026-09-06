@@ -1,9 +1,13 @@
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, type AccountSummary, type Movement } from "../api";
 import { useAuth } from "../auth";
-import { Chip, EmptyState, Money, PageHeader, btnGhost, btnPrimary, cardClass } from "../components/ui";
-import { formatDate } from "../money";
+import { Chip, EmptyState, Field, Money, PageHeader, btnGhost, btnPrimary, cardClass, inputClass } from "../components/ui";
+import { formatDate, formatDkk, parseDkkInput } from "../money";
+
+function oreInput(ore: number): string {
+  return formatDkk(ore).replace(" kr", "");
+}
 
 export default function AccountDetailPage() {
   const { id } = useParams();
@@ -12,16 +16,43 @@ export default function AccountDetailPage() {
   const [account, setAccount] = useState<AccountSummary | null>(null);
   const [movements, setMovements] = useState<Movement[]>([]);
   const [error, setError] = useState("");
+  const [opening, setOpening] = useState("0");
+  const [openingOn, setOpeningOn] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  function applyAccount(a: AccountSummary) {
+    setAccount(a);
+    setOpening(oreInput(a.opening_balance_ore));
+    setOpeningOn(a.opening_on || "");
+  }
 
   useEffect(() => {
     if (!id) return;
     Promise.all([api.account(token!, id), api.movements(token!, { accountId: id })])
       .then(([a, m]) => {
-        setAccount(a);
+        applyAccount(a);
         setMovements(m);
       })
       .catch((err: Error) => setError(err.message));
   }, [id, token]);
+
+  async function saveStart(event: FormEvent) {
+    event.preventDefault();
+    if (!id) return;
+    setSaving(true);
+    setError("");
+    try {
+      const updated = await api.updateAccount(token!, id, {
+        opening_balance_ore: parseDkkInput(opening),
+        opening_on: openingOn || null,
+      });
+      applyAccount(updated);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function remove() {
     if (!id || !confirm("Delete this account and all of its entries?")) return;
@@ -63,10 +94,13 @@ export default function AccountDetailPage() {
           </div>
         </div>
         <div className={cardClass}>
-          <p className="text-xs uppercase tracking-wide text-stone-500">Opening</p>
+          <p className="text-xs uppercase tracking-wide text-stone-500">Start amount</p>
           <div className="mt-2">
             <Money ore={account.opening_balance_ore} />
           </div>
+          <p className="mt-1 text-xs text-stone-500">
+            {account.opening_on ? `At the start of ${formatDate(account.opening_on)}` : "No start date — all entries are counted"}
+          </p>
         </div>
         <div className={cardClass}>
           <p className="text-xs uppercase tracking-wide text-stone-500">Owners</p>
@@ -77,6 +111,23 @@ export default function AccountDetailPage() {
           </div>
         </div>
       </div>
+
+      <form onSubmit={saveStart} className={`${cardClass} mt-4 grid gap-4 sm:grid-cols-3`}>
+        <Field label="Start amount">
+          <input className={inputClass} value={opening} onChange={(e) => setOpening(e.target.value)} />
+        </Field>
+        <Field label="Start date">
+          <input type="date" className={inputClass} value={openingOn} onChange={(e) => setOpeningOn(e.target.value)} />
+        </Field>
+        <div className="flex items-end">
+          <button className={btnPrimary} type="submit" disabled={saving}>
+            {saving ? "Saving…" : "Save start amount"}
+          </button>
+        </div>
+        <p className="sm:col-span-3 text-xs text-stone-500">
+          Current balance = start amount + money in/out on or after the start date. Entries before that date stay in the list but do not change the balance.
+        </p>
+      </form>
 
       <h2 className="mt-8 text-lg text-ink">Entries</h2>
       {movements.length === 0 ? (

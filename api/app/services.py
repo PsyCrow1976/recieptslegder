@@ -15,6 +15,7 @@ from app.models import (
     PlatformKind,
     Vendor,
 )
+from app.money import ledger_balance
 from app.schemas import (
     AccountBrief,
     AccountSummary,
@@ -50,8 +51,11 @@ def platform_read(platform: Platform, account_count: int | None = None) -> Platf
 
 
 def account_balance_ore(account: Account) -> int:
-    movements = account.movements or []
-    return int(account.opening_balance_ore) + sum(m.amount_ore for m in movements)
+    return ledger_balance(
+        int(account.opening_balance_ore or 0),
+        account.opening_on,
+        ((movement.posted_on, movement.amount_ore) for movement in account.movements or []),
+    )
 
 
 def account_summary(account: Account) -> AccountSummary:
@@ -61,6 +65,7 @@ def account_summary(account: Account) -> AccountSummary:
         account_number=account.account_number,
         currency=account.currency,
         opening_balance_ore=account.opening_balance_ore,
+        opening_on=account.opening_on,
         balance_ore=account_balance_ore(account),
         notes=account.notes,
         created_at=account.created_at,

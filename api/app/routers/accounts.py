@@ -39,6 +39,7 @@ def create_account(payload: AccountWrite, db: Annotated[Session, Depends(get_db)
         account_number=(payload.account_number or "").strip() or None,
         currency=payload.currency.upper(),
         opening_balance_ore=payload.opening_balance_ore,
+        opening_on=payload.opening_on,
         notes=payload.notes,
         owners=owners,
     )
@@ -68,6 +69,8 @@ def update_account(
         account.currency = payload.currency.upper()
     if payload.opening_balance_ore is not None:
         account.opening_balance_ore = payload.opening_balance_ore
+    if "opening_on" in payload.model_fields_set:
+        account.opening_on = payload.opening_on
     if payload.notes is not None:
         account.notes = payload.notes
     if payload.owner_ids is not None:
