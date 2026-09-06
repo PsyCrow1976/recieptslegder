@@ -1,12 +1,57 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, type AccountSummary, type Movement } from "../api";
 import { useAuth } from "../auth";
 import { Chip, EmptyState, Field, Money, PageHeader, btnGhost, btnPrimary, cardClass, inputClass } from "../components/ui";
-import { formatDate, formatDkk, parseDkkInput } from "../money";
+import {
+  formatDate,
+  formatDkk,
+  formatMonthTitle,
+  inDateRange,
+  monthEndIso,
+  monthStartIso,
+  parseDkkInput,
+  shiftMonth,
+  todayIso,
+} from "../money";
 
 function oreInput(ore: number): string {
   return formatDkk(ore).replace(" kr", "");
+}
+
+function balanceAt(
+  account: AccountSummary,
+  movements: Movement[],
+  throughInclusive: string | null,
+  beforeExclusive: string | null,
+): number {
+  let total = account.opening_balance_ore;
+  for (const movement of movements) {
+    if (account.opening_on && movement.posted_on < account.opening_on) continue;
+    if (beforeExclusive && movement.posted_on >= beforeExclusive) continue;
+    if (throughInclusive && movement.posted_on > throughInclusive) continue;
+    total += movement.amount_ore;
+  }
+  return total;
+}
+
+function EntryRow({ movement }: { movement: Movement }) {
+  return (
+    <Link
+      to={`/entries/${movement.id}`}
+      className="flex items-center justify-between gap-4 border-b border-stone-100 px-4 py-3 last:border-b-0 hover:bg-stone-50"
+    >
+      <div>
+        <p className="font-medium">{movement.description || movement.vendor?.name || "Entry"}</p>
+        <p className="text-xs text-stone-500">
+          {formatDate(movement.posted_on)}
+          {movement.vendor ? ` · ${movement.vendor.name}` : ""}
+          {movement.items.length ? ` · ${movement.items.length} items` : ""}
+        </p>
+      </div>
+      <Money ore={movement.amount_ore} />
+    </Link>
+  );
 }
 
 export default function AccountDetailPage() {
@@ -19,11 +64,18 @@ export default function AccountDetailPage() {
   const [opening, setOpening] = useState("0");
   const [openingOn, setOpeningOn] = useState("");
   const [saving, setSaving] = useState(false);
+  const [view, setView] = useState<"list" | "month">("month");
+  const [listFrom, setListFrom] = useState("");
+  const [listTo, setListTo] = useState(todayIso());
+  const today = todayIso();
+  const [monthYear, setMonthYear] = useState(() => Number(today.slice(0, 4)));
+  const [monthIndex, setMonthIndex] = useState(() => Number(today.slice(5, 7)) - 1);
 
   function applyAccount(a: AccountSummary) {
     setAccount(a);
     setOpening(oreInput(a.opening_balance_ore));
     setOpeningOn(a.opening_on || "");
+    if (a.opening_on && !listFrom) setListFrom(a.opening_on);
   }
 
   useEffect(() => {
@@ -60,7 +112,25 @@ export default function AccountDetailPage() {
     navigate("/accounts");
   }
 
-  if (error) return <p className="text-rose-700">{error}</p>;
+  const listRows = useMemo(
+    () => movements.filter((row) => inDateRange(row.posted_on, listFrom, listTo)),
+    [movements, listFrom, listTo],
+  );
+
+  const monthFrom = monthStartIso(monthYear, monthIndex);
+  const monthTo = monthEndIso(monthYear, monthIndex);
+  const monthRows = useMemo(
+    () => movements.filter((row) => inDateRange(row.posted_on, monthFrom, monthTo)),
+    [movements, monthFrom, monthTo],
+  );
+  const incomeRows = monthRows.filter((row) => row.amount_ore > 0);
+  const expenseRows = monthRows.filter((row) => row.amount_ore < 0);
+  const incomeOre = incomeRows.reduce((sum, row) => sum + row.amount_ore, 0);
+  const expenseOre = expenseRows.reduce((sum, row) => sum + row.amount_ore, 0);
+  const monthStartBalance = account ? balanceAt(account, movements, null, monthFrom) : 0;
+  const monthEndBalance = account ? balanceAt(account, movements, monthTo, null) : 0;
+
+  if (error && !account) return <p className="text-rose-700">{error}</p>;
   if (!account) return <p className="text-stone-500">Loading…</p>;
 
   return (
@@ -71,7 +141,7 @@ export default function AccountDetailPage() {
         action={
           <div className="flex gap-2">
             <Link
-              to={`/entries/import`}
+              to="/entries/import"
               className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
             >
               Import CSV
@@ -88,7 +158,7 @@ export default function AccountDetailPage() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className={cardClass}>
-          <p className="text-xs uppercase tracking-wide text-stone-500">Balance</p>
+          <p className="text-xs uppercase tracking-wide text-stone-500">Current balance</p>
           <div className="mt-2 text-2xl">
             <Money ore={account.balance_ore} className="text-2xl" />
           </div>
@@ -124,42 +194,118 @@ export default function AccountDetailPage() {
             {saving ? "Saving…" : "Save start amount"}
           </button>
         </div>
-        <p className="sm:col-span-3 text-xs text-stone-500">
-          Current balance = start amount + money in/out on or after the start date. Entries before that date stay in the list but do not change the balance.
-        </p>
+        {error ? <p className="sm:col-span-3 text-sm text-rose-700">{error}</p> : null}
       </form>
 
-      <h2 className="mt-8 text-lg text-ink">Entries</h2>
-      {movements.length === 0 ? (
-        <div className="mt-3">
-          <EmptyState
-            title="No money in or out yet"
-            body="Add a salary, a purchase, a transfer, or an investment movement. You can attach a PDF or a photo of a receipt and split it into line items."
-            to={`/entries/new?account=${account.id}`}
-            cta="Add entry"
-          />
-        </div>
-      ) : (
-        <div className="mt-3 overflow-hidden rounded-2xl border border-stone-200 bg-white">
-          {movements.map((m) => (
-            <Link
-              key={m.id}
-              to={`/entries/${m.id}`}
-              className="flex items-center justify-between gap-4 border-b border-stone-100 px-4 py-3 last:border-b-0 hover:bg-stone-50"
+      <div className="mt-8 flex gap-2">
+        <button
+          type="button"
+          className={`rounded-lg px-4 py-2 text-sm font-semibold ${view === "month" ? "bg-brand-600 text-white" : "bg-white text-stone-700 border border-stone-300"}`}
+          onClick={() => setView("month")}
+        >
+          Month
+        </button>
+        <button
+          type="button"
+          className={`rounded-lg px-4 py-2 text-sm font-semibold ${view === "list" ? "bg-brand-600 text-white" : "bg-white text-stone-700 border border-stone-300"}`}
+          onClick={() => setView("list")}
+        >
+          List
+        </button>
+      </div>
+
+      {view === "list" && (
+        <section className="mt-4">
+          <div className={`${cardClass} mb-4 grid gap-4 sm:grid-cols-3`}>
+            <Field label="From">
+              <input type="date" className={inputClass} value={listFrom} onChange={(e) => setListFrom(e.target.value)} />
+            </Field>
+            <Field label="To">
+              <input type="date" className={inputClass} value={listTo} onChange={(e) => setListTo(e.target.value)} />
+            </Field>
+            <p className="self-end text-sm text-stone-500">{listRows.length} entries</p>
+          </div>
+          {listRows.length === 0 ? (
+            <EmptyState title="No entries in this range" body="Change the dates, import a CSV, or add an entry." />
+          ) : (
+            <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
+              {listRows.map((movement) => (
+                <EntryRow key={movement.id} movement={movement} />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {view === "month" && (
+        <section className="mt-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              className={btnGhost}
+              onClick={() => {
+                const next = shiftMonth(monthYear, monthIndex, -1);
+                setMonthYear(next.year);
+                setMonthIndex(next.monthIndex);
+              }}
             >
-              <div>
-                <p className="font-medium">{m.description || m.vendor?.name || "Entry"}</p>
-                <p className="text-xs text-stone-500">
-                  {formatDate(m.posted_on)}
-                  {m.vendor ? ` · ${m.vendor.name}` : ""}
-                  {m.items.length ? ` · ${m.items.length} items` : ""}
-                  {m.attachments.length ? ` · ${m.attachments.length} files` : ""}
-                </p>
+              Previous
+            </button>
+            <h2 className="text-xl capitalize text-ink">{formatMonthTitle(monthYear, monthIndex)}</h2>
+            <button
+              type="button"
+              className={btnGhost}
+              onClick={() => {
+                const next = shiftMonth(monthYear, monthIndex, 1);
+                setMonthYear(next.year);
+                setMonthIndex(next.monthIndex);
+              }}
+            >
+              Next
+            </button>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className={cardClass}>
+              <p className="text-xs uppercase tracking-wide text-stone-500">Start of month</p>
+              <div className="mt-2 text-xl">
+                <Money ore={monthStartBalance} className="text-xl" />
               </div>
-              <Money ore={m.amount_ore} />
-            </Link>
-          ))}
-        </div>
+              <p className="mt-1 text-xs text-stone-500">{formatDate(monthFrom)}</p>
+            </div>
+            <div className={cardClass}>
+              <p className="text-xs uppercase tracking-wide text-stone-500">End of month</p>
+              <div className="mt-2 text-xl">
+                <Money ore={monthEndBalance} className="text-xl" />
+              </div>
+              <p className="mt-1 text-xs text-stone-500">{formatDate(monthTo)}</p>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
+            <div className="flex items-center justify-between bg-emerald-50 px-4 py-3">
+              <p className="font-semibold text-emerald-900">Income</p>
+              <Money ore={incomeOre} />
+            </div>
+            {incomeRows.length === 0 ? (
+              <p className="px-4 py-3 text-sm text-stone-500">No income this month.</p>
+            ) : (
+              incomeRows.map((movement) => <EntryRow key={movement.id} movement={movement} />)
+            )}
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
+            <div className="flex items-center justify-between bg-rose-50 px-4 py-3">
+              <p className="font-semibold text-rose-900">Expenses</p>
+              <Money ore={expenseOre} />
+            </div>
+            {expenseRows.length === 0 ? (
+              <p className="px-4 py-3 text-sm text-stone-500">No expenses this month.</p>
+            ) : (
+              expenseRows.map((movement) => <EntryRow key={movement.id} movement={movement} />)
+            )}
+          </div>
+        </section>
       )}
     </div>
   );

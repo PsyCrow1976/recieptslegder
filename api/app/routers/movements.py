@@ -98,7 +98,7 @@ def list_movements(
         stmt = stmt.join(AccountOwner, AccountOwner.account_id == Movement.account_id).where(
             AccountOwner.person_id == person_id
         )
-    stmt = stmt.order_by(Movement.posted_on.desc(), Movement.created_at.desc()).limit(400)
+    stmt = stmt.order_by(Movement.posted_on.desc(), Movement.created_at.desc()).limit(5000)
     movements = db.scalars(stmt).unique().all()
     return [movement_read(m) for m in movements]
 

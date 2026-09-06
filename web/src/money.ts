@@ -31,13 +31,38 @@ export function formatDate(iso: string | null | undefined): string {
   }).format(date);
 }
 
+function pad2(value: number): string {
+  return String(value).padStart(2, "0");
+}
+
 export function todayIso(): string {
   const now = new Date();
   const tz = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Copenhagen" }));
-  const year = tz.getFullYear();
-  const month = String(tz.getMonth() + 1).padStart(2, "0");
-  const day = String(tz.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return `${tz.getFullYear()}-${pad2(tz.getMonth() + 1)}-${pad2(tz.getDate())}`;
+}
+
+export function monthStartIso(year: number, monthIndex: number): string {
+  return `${year}-${pad2(monthIndex + 1)}-01`;
+}
+
+export function monthEndIso(year: number, monthIndex: number): string {
+  const last = new Date(year, monthIndex + 1, 0).getDate();
+  return `${year}-${pad2(monthIndex + 1)}-${pad2(last)}`;
+}
+
+export function shiftMonth(year: number, monthIndex: number, delta: number): { year: number; monthIndex: number } {
+  const date = new Date(year, monthIndex + delta, 1);
+  return { year: date.getFullYear(), monthIndex: date.getMonth() };
+}
+
+export function formatMonthTitle(year: number, monthIndex: number): string {
+  return new Intl.DateTimeFormat("da-DK", { month: "long", year: "numeric" }).format(new Date(year, monthIndex, 1));
+}
+
+export function inDateRange(iso: string, from: string, to: string): boolean {
+  if (from && iso < from) return false;
+  if (to && iso > to) return false;
+  return true;
 }
 
 export const COLORS = [
